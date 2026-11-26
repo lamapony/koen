@@ -12,6 +12,7 @@ import { maybeIntro, showMethod, showSources } from "./ui/panels";
 import { startTour } from "./ui/tour";
 import { $, esc, announce, toast } from "./ui/util";
 import { num } from "./format";
+import { installCampaignTracking } from "./funnel/utm";
 
 const mobile = matchMedia("(max-width: 760px)").matches;
 const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -31,6 +32,7 @@ async function boot(): Promise<void> {
   ctx.mobile = mobile;
   ctx.reducedMotion = reducedMotion;
   initState(d.meta.index.ids, d.meta.index.weights);
+  installCampaignTracking(() => state.mode);
   setLang(state.lang);
   applyTheme();
   ctx.geo = buildGeo(d);

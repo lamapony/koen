@@ -23,6 +23,8 @@ export interface ModeDef {
   group: ModeGroup;
   /** Optional toggle (e.g. count vs share). */
   alt?: boolean;
+  /** Listed under the "Flere visninger" disclosure instead of on the first screen. */
+  more?: boolean;
   compute(d: AppData, ctx: { koetryk: number[]; alt: boolean }): ModeResult;
 }
 
@@ -43,7 +45,7 @@ export const MODES: ModeDef[] = [
     compute(d, { koetryk }) {
       const ids = d.meta.index.ids;
       const tables = [...new Set(ids.flatMap((i) => d.ind.get(i)!.tables))];
-      const per = d.ind.get("D1")!.period;
+      const per = d.ind.get(ids[0])!.period;
       return { values: koetryk, rank: koetryk, unit: "", dec: 2, tables, period: per };
     },
   },
@@ -62,21 +64,26 @@ export const MODES: ModeDef[] = [
     group: "koen",
     compute(d) {
       const values = d.kommuner.map((k) => (k.koetrykBand[1] - k.koetrykBand[0]) * 100);
-      return { values, rank: pctRank(values), unit: "pp", dec: 0, tables: ["FOLK1A", "BOL101", "FRKM126", "EJDFOE1", "INDKP106", "BYGV33"], period: "200 vægtsæt" };
+      const tables = [...new Set(d.meta.index.ids.flatMap((i) => d.ind.get(i)!.tables))];
+      return { values, rank: pctRank(values), unit: "pp", dec: 0, tables, period: "200 vægtsæt" };
     },
   },
   { id: "andel", kind: "register", group: "boliger", alt: true, compute: ind("ANDEL_N", "ANDEL_PCT") },
   { id: "almen", kind: "register", group: "boliger", alt: true, compute: ind("ALMEN_N", "ALMEN_PCT") },
-  { id: "voksne", kind: "derived", group: "boliger", compute: ind("D1") },
-  { id: "tomme", kind: "register", group: "boliger", compute: ind("S2") },
-  { id: "nybyggeri", kind: "register", group: "boliger", alt: true, compute: ind("S1", "NYBYG_AA") },
-  { id: "andelsvaerdi", kind: "register", group: "pris", compute: ind("ANDELSVAERDI") },
+  { id: "bestand", kind: "derived", group: "boliger", compute: ind("B1") },
   { id: "vaerdiIndkomst", kind: "derived", group: "pris", compute: ind("P1") },
-  { id: "boligstoette", kind: "register", group: "pris", compute: ind("BOLIGSTOETTE") },
-  { id: "vaekst", kind: "register", group: "befolkning", compute: ind("D2") },
-  { id: "y2036", kind: "projection", group: "befolkning", compute: ind("D3") },
   { id: "unge", kind: "register", group: "befolkning", compute: ind("D4") },
+  { id: "vaekst", kind: "register", group: "befolkning", compute: ind("D2") },
   { id: "flyt", kind: "register", group: "befolkning", compute: ind("NETFLYT") },
+  // Flere visninger: index parts with a smaller weight, and context lenses.
+  { id: "ejerIndkomst", kind: "derived", group: "pris", more: true, compute: ind("P2") },
+  { id: "indvandring", kind: "register", group: "befolkning", more: true, compute: ind("D5") },
+  { id: "tomme", kind: "register", group: "boliger", more: true, compute: ind("S2") },
+  { id: "nybyggeri", kind: "register", group: "boliger", more: true, alt: true, compute: ind("S1", "NYBYG_AA") },
+  { id: "andelsvaerdi", kind: "register", group: "pris", more: true, compute: ind("ANDELSVAERDI") },
+  { id: "boligstoette", kind: "register", group: "pris", more: true, compute: ind("BOLIGSTOETTE") },
+  { id: "y2036", kind: "projection", group: "befolkning", more: true, compute: ind("D3") },
+  { id: "voksne", kind: "derived", group: "boliger", more: true, compute: ind("D1") },
 ];
 
 export const MODE_BY_ID = new Map(MODES.map((m) => [m.id, m]));

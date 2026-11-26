@@ -7,7 +7,7 @@ import { THEME, rampColor, css } from "../map/palette";
 import { quantileBreaks } from "../model";
 import { num, withUnit } from "../format";
 import { $, esc, icon } from "./util";
-import { legendLink, footerLink, FLAGS } from "../funnel/utm";
+import { legendLink, footerLink, mastheadLink, FLAGS } from "../funnel/utm";
 import { en } from "../copy/en";
 
 export function fmtModeValue(v: number | null, m = ctx.mode, modeId = state.mode): string {
@@ -37,6 +37,7 @@ export function renderMasthead(): void {
         <path d="M58 2 C76 -6, 98 -4, 118 -12" fill="none" stroke="var(--oxblod)" stroke-width="0.8" opacity="0.6" stroke-linecap="round"/>
       </svg></span>en</h1>
       <p class="tagline">${esc(c.tagline)}</p>
+      <p class="by">${esc(c.by)} <a href="${esc(mastheadLink())}" target="_blank" rel="noopener">Ventelistevalg</a></p>
       <p class="sub">${esc(c.sub).replace(lang() === "da" ? "med blåt" : "in blue", `<span class="blue">${lang() === "da" ? "med blåt" : "in blue"}</span>`)}</p>
     </div>`;
   const tools = $("tools");
@@ -69,26 +70,37 @@ export function renderMasthead(): void {
   $("btn-lang").onclick = () => set({ lang: state.lang === "da" ? "en" : "da" });
 }
 
+let moreModesOpen = false;
+
 export function renderModes(): void {
   const c = t();
   const el = $("modes");
   el.setAttribute("aria-label", c.modesLabel);
   let lastGroup = "";
+  const chip = (m: (typeof MODES)[number], i: number, withHead: boolean) => {
+    const [name, tip] = c.modes[m.id];
+    // Every lens that is not a plain DST register count says what kind of number it is.
+    const k = m.kind === "register" ? "" : kindLabel(m.kind);
+    const cls = m.id === "maalt" ? "chip measured" : "chip";
+    const head = withHead && m.group !== lastGroup ? `<h3 class="caps group">${esc(c.modeGroups[m.group])}</h3>` : "";
+    lastGroup = m.group;
+    return `${head}<button type="button" class="${cls}" data-mode="${m.id}" aria-pressed="${state.mode === m.id}" title="${esc(lang() === "da" ? `${tip} (EN: ${en.modes[m.id][0]})` : tip)}">
+        <span class="n">${String(i + 1).padStart(2, "0")}</span><span class="l">${esc(name)}</span><span class="k">${esc(k)}</span></button>`;
+  };
+  // First screen: the strongest lenses (docs/BUILD-NOTES.md, "First screen views"). The rest sit behind a native disclosure.
+  const primary = MODES.filter((m) => !m.more);
+  const more = MODES.filter((m) => m.more);
+  const moreOpen = moreModesOpen || more.some((m) => m.id === state.mode);
   el.innerHTML =
     `<h2 class="sr-only">${esc(c.modesLabel)}</h2>` +
-    MODES.map((m, i) => {
-      const [name, tip] = c.modes[m.id];
-      // Every lens that is not a plain DST register count says what kind of number it is.
-      const k = m.kind === "register" ? "" : kindLabel(m.kind);
-      const cls = m.id === "maalt" ? "chip measured" : "chip";
-      const head = m.group !== lastGroup ? `<h3 class="caps group">${esc(c.modeGroups[m.group])}</h3>` : "";
-      lastGroup = m.group;
-      return `${head}<button type="button" class="${cls}" data-mode="${m.id}" aria-pressed="${state.mode === m.id}" title="${esc(lang() === "da" ? `${tip} (EN: ${en.modes[m.id][0]})` : tip)}">
-        <span class="n">${String(i + 1).padStart(2, "0")}</span><span class="l">${esc(name)}</span><span class="k">${esc(k)}</span></button>`;
-    }).join("");
-  el.querySelectorAll<HTMLButtonElement>(".chip").forEach((b) => {
+    primary.map((m, i) => chip(m, i, true)).join("") +
+    `<details class="more-modes" id="more-modes"${moreOpen ? " open" : ""}><summary class="chip more-sum"><span class="n">+</span><span class="l">${esc(c.moreModes(more.length))}</span></summary>
+      <div class="more-list">${more.map((m, i) => chip(m, primary.length + i, false)).join("")}</div></details>`;
+  el.querySelectorAll<HTMLButtonElement>("button.chip").forEach((b) => {
     b.onclick = () => set({ mode: b.dataset.mode!, alt: false });
   });
+  const det = el.querySelector<HTMLDetailsElement>("#more-modes")!;
+  det.addEventListener("toggle", () => (moreModesOpen = det.open));
   // Keep the active lens clear of the rail's bottom fade (vertical rail) or in view (mobile chip row).
   const active = el.querySelector<HTMLElement>('[aria-pressed="true"]');
   if (active) {

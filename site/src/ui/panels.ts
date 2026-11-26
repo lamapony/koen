@@ -3,6 +3,7 @@ import { ctx } from "../ctx";
 import { t, label, lang, period } from "../i18n";
 import { num } from "../format";
 import { $, esc, icon } from "./util";
+import { methodLink } from "../funnel/utm";
 
 const SEEN = "koen-intro-seen"; // localStorage, not a cookie
 
@@ -77,35 +78,61 @@ export function showMethod(): void {
     })
     .join("");
   const looTxt = ids.map((id) => `${id} ${num(loo[id], 2)}`).join(" · ");
+  const v = d.meta.index.validation;
+  const rk = (e: NonNullable<typeof v>["after"]) => `København ${num(e.ranks["0101"], 0)}, Frederiksberg ${num(e.ranks["0147"], 0)}, Aarhus ${num(e.ranks["0751"], 0)}`;
+  const valDa = v
+    ? `<h3>Kontrol mod rigtige køer</h3>
+      <p>Der findes ingen national opgørelse af ventelister, så vi tjekker mod det lidt, der findes: København, Frederiksberg og Aarhus har de længste køer; Ventelistevalgs andelskatalog med offentlige kølængder dækker København og Frederiksberg; Aarhusbolig 2017 har rigtige kølængder for Aarhus, Skanderborg og Favrskov.</p>
+      <table class="valtab"><thead><tr><th></th><th>v1</th><th>v2</th></tr></thead><tbody>
+      <tr><th>Placering</th><td>${esc(rk(v.before))}</td><td>${esc(rk(v.after))}</td></tr>
+      <tr><th>AUC, de tre byer</th><td>${num(v.before.owner3.auc, 2)}</td><td>${num(v.after.owner3.auc, 2)}</td></tr>
+      <tr><th>Spearman, Aarhusbolig (3 kommuner)</th><td>${num(v.before.aarhusbolig.rho, 2)}</td><td>${num(v.after.aarhusbolig.rho, 2)}</td></tr>
+      </tbody></table>
+      <p>AUC er sandsynligheden for, at en af de tre byer ligger over en tilfældig anden kommune (1 er perfekt, 0,5 er tilfældigt). Med kun tre ankre er det en grov kontrol, ikke et bevis. Vægtene er runde tal valgt ud fra hvad der skaber kø, ikke tilpasset ankrene.</p>`
+    : "";
+  const valEn = v
+    ? `<h3>Checked against real queues</h3>
+      <p>There is no national count of waiting lists, so we check against the little that exists: København, Frederiksberg and Aarhus have the longest queues; Ventelistevalg's co-op catalog with public queue lengths covers København and Frederiksberg; Aarhusbolig 2017 has real queue lengths for Aarhus, Skanderborg and Favrskov.</p>
+      <table class="valtab"><thead><tr><th></th><th>v1</th><th>v2</th></tr></thead><tbody>
+      <tr><th>Rank</th><td>${esc(rk(v.before))}</td><td>${esc(rk(v.after))}</td></tr>
+      <tr><th>AUC, the three cities</th><td>${num(v.before.owner3.auc, 2)}</td><td>${num(v.after.owner3.auc, 2)}</td></tr>
+      <tr><th>Spearman, Aarhusbolig (3 kommuner)</th><td>${num(v.before.aarhusbolig.rho, 2)}</td><td>${num(v.after.aarhusbolig.rho, 2)}</td></tr>
+      </tbody></table>
+      <p>AUC is the probability that one of the three cities ranks above a random other kommune (1 is perfect, 0.5 is chance). With three anchors this is a rough check, not proof. The weights are round numbers chosen from what creates queues, not fitted to the anchors.</p>`
+    : "";
   const html = da
     ? `<h2 id="m-title">${esc(t().methodTitle)}</h2>
       <p><b>To lag, holdt adskilt.</b> Bjergene er et <b>modelleret køtryk</b> for alle 98 kommuner, bygget kun af åbne tal fra Danmarks Statistik. De blå nåle er <b>målte</b> ventelister, og de findes kun, hvor nogen har offentliggjort dem: i dag Aarhusbolig, et øjebliksbillede fra 2017.</p>
       <p><b>Hvorfor modelleret?</b> Ventelister til andelsboliger og de fleste almene lister er ikke offentlige. Der findes intet nationalt register. Køen opfinder ingen kølængder.</p>
+      <p><b>Hvad måler køtrykket?</b> Hvor mange der står i kø i forhold til kommunens størrelse. Det stiger med tre ting: hvor mange almen- og andelsboliger der er pr. voksen (flere boliger med venteliste giver flere i kø), hvor stor efterspørgslen er (unge voksne, tilflyttere fra udlandet, vækst), og hvor dyrt det er at købe sig ud af køen (bolig mod indkomst). Tomme boliger trækker ned. Version 2 fra november 2026; version 1 vendte boligbestanden den anden vej.</p>
       <h3>Indikatorerne</h3><ul>${rows}</ul>
       <h3>Beregningen</h3>
       <pre>z = (x − median) / (1,4826 × MAD), begrænset til ±2,5
 råt = Σ vægt × z   (manglende tal udelades, vægte normaliseres)
 køtryk = percentil af råt blandt 98 kommuner (0 til 1)</pre>
       <p>Robuste z-værdier gør, at én ekstrem kommune ikke trækker skalaen. Højden er <code>køtryk^1,6</code>, så toppen står tydeligt frem.</p>
+      ${valDa}
       <h3>Usikkerhed</h3>
       <p>Vi regner indekset om med 200 tilfældige vægtsæt omkring standardvægtene. Kortet viser spændet for hver kommune, og visningen Usikkerhed gør det til terræn. Hver indikator er testet ved at fjerne den: rangfølgen ændrer sig kun lidt (Spearman ${esc(looTxt)}; kravet er mindst 0,8).</p>
       <h3>Det ved vi ikke</h3>
-      <p>Kommunegrænserne er grove (geoBoundaries, Public Domain) og skal erstattes af DAGI. EJDFOE1 er en formuestatistik, ikke salgspriser. Aarhusbolig dækker én kommune og kan ikke validere en national rangering. Én person kan stå på flere lister, så tilmeldinger er ikke personer.</p>
-      <p>Du kan selv ændre vægtene under <b>Udforsk</b>, Byg dit eget køtryk.</p>`
+      <p>Køtrykket siger ikke, hvor lang den enkelte liste er, og de mest almene forstæder (fx Brøndby, Ishøj, Albertslund) ligger højt, fordi de har mange boliger med venteliste. Kommunegrænserne er grove (geoBoundaries, Public Domain) og skal erstattes af DAGI. EJDFOE1 er en formuestatistik, ikke salgspriser. Huslejer indgår ikke, fordi Køen ikke har en åben huslejekilde pr. kommune. Én person kan stå på flere lister, så tilmeldinger er ikke personer.</p>
+      <p>Du kan selv ændre vægtene under <b>Udforsk</b>, Byg dit eget køtryk. Ventelistevalg beskriver sine egne kilder på <a href="${esc(methodLink())}" target="_blank" rel="noopener">Datakilder</a>.</p>`
     : `<h2 id="m-title">${esc(t().methodTitle)}</h2>
       <p><b>Two layers, kept apart.</b> The mountains are a <b>modelled queue pressure</b> for all 98 kommuner, built only from open Statistics Denmark data. The blue needles are <b>measured</b> waiting lists and exist only where someone published them: today Aarhusbolig, a 2017 snapshot.</p>
       <p><b>Why modelled?</b> Co-op waiting lists and most social housing lists are not public. There is no national register. Køen invents no queue lengths.</p>
+      <p><b>What does it measure?</b> How many people queue relative to the size of the kommune. It rises with three things: how many social and co-op dwellings there are per adult (more dwellings with a waiting list means more people queuing), how strong demand is (young adults, arrivals from abroad, growth), and how expensive it is to buy your way out of the queue (home value to income). Empty dwellings lower it. Version 2 from November 2026; version 1 counted the housing stock the other way round.</p>
       <h3>Indicators</h3><ul>${rows}</ul>
       <h3>Calculation</h3>
       <pre>z = (x − median) / (1.4826 × MAD), clamped to ±2.5
 raw = Σ weight × z   (missing values dropped, weights renormalised)
 pressure = percentile of raw among 98 kommuner (0 to 1)</pre>
       <p>Robust z-scores keep one extreme kommune from stretching the scale. Height is <code>pressure^1.6</code> so the top stands out.</p>
+      ${valEn}
       <h3>Uncertainty</h3>
       <p>We recompute the index with 200 random weight sets around the defaults. The card shows the range per kommune, and the Uncertainty view turns it into terrain. Each indicator was tested by leaving it out: the ranking barely moves (Spearman ${esc(looTxt)}; the threshold is 0.8).</p>
       <h3>What we do not know</h3>
-      <p>Kommune boundaries are coarse (geoBoundaries, Public Domain) and will be replaced by DAGI. EJDFOE1 is a wealth statistic, not sales prices. Aarhusbolig covers one kommune and cannot validate a national ranking. One person can be on several lists, so sign-ups are not people.</p>
-      <p>You can change the weights yourself under <b>Explore</b>, Build your own index.</p>`;
+      <p>The index does not say how long a single list is, and the suburbs with the most social housing (e.g. Brøndby, Ishøj, Albertslund) rank high because they have many dwellings with a waiting list. Kommune boundaries are coarse (geoBoundaries, Public Domain) and will be replaced by DAGI. EJDFOE1 is a wealth statistic, not sales prices. Rents are not included because Køen has no open rent source per kommune. One person can be on several lists, so sign-ups are not people.</p>
+      <p>You can change the weights yourself under <b>Explore</b>, Build your own index. Ventelistevalg documents its own sources on <a href="${esc(methodLink())}" target="_blank" rel="noopener">Datakilder</a>.</p>`;
   openPanel(html, "m-title");
 }
 

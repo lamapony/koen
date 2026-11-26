@@ -45,7 +45,30 @@ export interface Kommune {
 
 export interface Meta {
   indicators: Indicator[];
-  index: { ids: string[]; weights: Record<string, number>; loo: Record<string, number>; params: Record<string, number> };
+  index: {
+    ids: string[];
+    weights: Record<string, number>;
+    loo: Record<string, number>;
+    params: Record<string, number>;
+    version?: number;
+    validation?: Validation;
+  };
+}
+
+export interface AnchorEval {
+  ranks: Record<string, number>;
+  owner3: { auc: number; rho: number; allTop15: boolean };
+  ventelistevalg: { auc: number; rho: number };
+  aarhusbolig: { n: number; rho: number };
+}
+
+export interface Validation {
+  before: AnchorEval;
+  after: AnchorEval;
+  leaveOneAnchorOut: { heldOut: string; navn: string; chosen: string; trainAuc: number; heldOutRank: number }[];
+  weightDrawsTop15: Record<string, number>;
+  topN: number;
+  maxOwner3Rho: number;
 }
 
 export interface MeasuredPoint {

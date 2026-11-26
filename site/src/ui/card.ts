@@ -4,7 +4,7 @@ import { t, label, lang, period } from "../i18n";
 import { state, set } from "../state";
 import { num, withUnit, topPct, signed } from "../format";
 import { $, esc, icon, sparkline } from "./util";
-import { fornyelsesradar, listerAndels, listerAlmene } from "../funnel/utm";
+import { kommuneLinks } from "../funnel/utm";
 import { unitLabel } from "./chrome";
 import { loadHistory, type History } from "../data";
 
@@ -62,7 +62,14 @@ export function renderCard(): void {
   const flowList = (rows: [number, number, number][], idx: 0 | 1) =>
     rows.map((r) => `<li><span>${esc(d.kommuner[r[idx]].navn)}</span><span class="mono">${num(r[2])}</span></li>`).join("");
 
-  const kbh = k.kode === "0101" || k.kode === "0147";
+  const vv = kommuneLinks(k.kode, k.region);
+  const ext = `target="_blank" rel="noopener"`;
+  const vvLists = vv.bydele.length
+    ? `<p>${esc(c.card.vvKbh)}</p><ul class="vv-bydele">${vv.bydele.map((b) => `<li><a href="${esc(b.href)}" ${ext}>${esc(b.navn)}</a></li>`).join("")}</ul>
+       <p><a href="${esc(vv.andels!)}" ${ext}>${esc(c.card.vvAllAndels)}</a></p>`
+    : "";
+  const vvAlmene = vv.almene ? `<p><a href="${esc(vv.almene)}" ${ext}>${esc(c.card.vvAlmene)}</a></p>` : "";
+  const vvNone = !vv.bydele.length && !vv.almene ? `<p class="dim">${esc(c.card.vvNone)}</p>` : "";
   el.hidden = false;
   el.setAttribute("aria-label", k.navn);
   el.innerHTML = `
@@ -76,7 +83,7 @@ export function renderCard(): void {
       <div class="big">${num(kt, 2)}<small>${esc(c.modelled.toUpperCase())}</small></div>
       <div>
         <p><b>${esc(rankLine)}</b></p>
-        <p>${esc(bandLine)} ${k.used < 7 ? esc(c.card.used(k.used)) : ""}</p>
+        <p>${esc(bandLine)} ${k.used < indexIds.length ? esc(c.card.used(k.used, indexIds.length)) : ""}</p>
         <div class="bandbar" aria-hidden="true"><span class="track"></span>
           ${!ctx.customWeights ? `<span class="rng" style="left:${lo * 100}%;width:${Math.max(1, (hi - lo) * 100)}%"></span>` : ""}
           <span class="pt" style="left:calc(${kt * 100}% - 1px)"></span></div>
@@ -92,11 +99,14 @@ export function renderCard(): void {
         <div><div class="caps" style="color:var(--graa);margin-bottom:4px">${esc(c.card.flowsOut)}</div><ul class="flows-list" style="columns:1">${flowList(outs, 1)}</ul></div>
       </div>
     </div>
-    <div class="cta">
-      <p>${esc(c.card.ctaText)}</p>
-      <p class="disclosure">${esc(c.card.ctaDisclosure)}</p>
-      <a class="go" href="${esc(fornyelsesradar(k.kode))}" target="_blank" rel="noopener">${esc(c.card.ctaButton)} ${icon.arrow}</a>
-      ${kbh ? `<p class="kbh">${esc(c.card.kbhLine)}: <a href="${esc(listerAndels(k.kode))}" target="_blank" rel="noopener">${esc(c.card.kbhAndels)}</a> · <a href="${esc(listerAlmene(k.kode))}" target="_blank" rel="noopener">${esc(c.card.kbhAlmene)}</a></p>` : ""}
+    <div class="sec vv"><h3 class="caps">${esc(c.card.vvTitle)}</h3>
+      ${vvLists}${vvAlmene}${vvNone}
+      <div class="cta">
+        <p>${esc(c.card.ctaText)}</p>
+        <a class="go" href="${esc(vv.radar)}" ${ext}>${esc(c.card.ctaButton)} ${icon.arrow}</a>
+        <p class="disclosure">${esc(c.card.ctaDisclosure)}</p>
+      </div>
+      <p class="guide"><a href="${esc(vv.guide)}" ${ext}>${esc(c.card.vvGuide)}</a></p>
     </div>`;
   $("card-close").onclick = () => set({ k: null });
   $("card-handle").onclick = () => {
