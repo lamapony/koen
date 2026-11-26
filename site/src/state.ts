@@ -23,8 +23,17 @@ export let state: State;
 let defaultW: Record<string, number> = {};
 let indexIds: string[] = [];
 
-export function initState(ids: string[], weights: Record<string, number>): State {
+/** Known values for hash validation, so a malformed shared URL falls back to defaults instead of breaking render. */
+export interface Known {
+  modes: Set<string>;
+  indicators: Set<string>;
+  kommuner: Set<string>;
+}
+let known: Known = { modes: new Set(), indicators: new Set(), kommuner: new Set() };
+
+export function initState(ids: string[], weights: Record<string, number>, k?: Known): State {
   indexIds = ids;
+  if (k) known = k;
   defaultW = Object.fromEntries(ids.map((i) => [i, Math.round(weights[i] * 100)]));
   state = {
     mode: "koetryk",
@@ -79,17 +88,21 @@ export function set(patch: Partial<State>): void {
 
 function readHash(): void {
   const p = new URLSearchParams(location.hash.slice(1));
+  const ok = (set: Set<string>, v: string | null): v is string => !!v && (set.size === 0 || set.has(v));
   const mode = p.get("mode");
-  if (mode) state.mode = mode;
+  if (ok(known.modes, mode)) state.mode = mode;
   if (p.get("alt") === "1") state.alt = true;
   const k = p.get("k");
-  if (k && /^\d{4}$/.test(k)) state.k = k;
-  if (p.get("x")) state.x = p.get("x")!;
-  if (p.get("y")) state.y = p.get("y")!;
+  if (k && /^\d{4}$/.test(k) && ok(known.kommuner, k)) state.k = k;
+  const x = p.get("x");
+  const y = p.get("y");
+  if (ok(known.indicators, x)) state.x = x;
+  if (ok(known.indicators, y)) state.y = y;
   const w = p.get("w");
   if (w) {
     const parts = w.split(",").map(Number);
-    if (parts.length === indexIds.length && parts.every((n) => Number.isFinite(n) && n >= 0)) {
+    // All zero would make every kommune tie and the ranks arbitrary, so such a URL keeps the default weights.
+    if (parts.length === indexIds.length && parts.every((n) => Number.isFinite(n) && n >= 0 && n <= 50) && parts.some((n) => n > 0)) {
       state.w = Object.fromEntries(indexIds.map((id, i) => [id, parts[i]]));
     }
   }
@@ -101,7 +114,7 @@ function readHash(): void {
   const cam = p.get("c");
   if (cam && cam.split(",").length === 5 && cam.split(",").every((x) => Number.isFinite(Number(x)))) state.cam = cam;
   const b = p.get("b");
-  if (b) state.brushed = new Set(b.split(",").filter((s) => /^\d{4}$/.test(s)));
+  if (b) state.brushed = new Set(b.split(",").filter((s) => /^\d{4}$/.test(s) && ok(known.kommuner, s)));
 }
 
 export function permalink(): string {

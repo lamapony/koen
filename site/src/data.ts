@@ -21,7 +21,7 @@ export interface Indicator {
 export interface MeasuredQueue {
   source: string;
   sourceUrl: string;
-  observedAt: string;
+  fileModifiedAt: string; // CKAN last_modified of the source file, not an observation date
   lists: number;
   signups: number; // sign-ups across lists, not unique people
   maxList: number;
@@ -89,7 +89,7 @@ export interface Measured {
     label_en: string;
     sourceUrl: string;
     licence: string;
-    observedAt: string;
+    fileModifiedAt: string; // CKAN last_modified of Ventelister.xml; the publisher gives no observation date
     fetchedAt: string;
     totals: { lists: number; signups: number; afdelinger: number; maxList: number };
     points: MeasuredPoint[];
@@ -113,7 +113,7 @@ export interface Source {
   publisher?: string;
   title: string;
   url?: string;
-  licence?: { name: string; url: string } | null;
+  licence?: { name: string; url: string | null } | null;
   attribution?: string;
   period?: string;
   fetchedAt?: string | null;

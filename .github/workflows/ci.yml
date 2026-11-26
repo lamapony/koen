@@ -16,14 +16,23 @@ jobs:
       - uses: astral-sh/setup-uv@v5
       - name: make check (committed data, no network)
         run: make check
+      - name: python unit tests
+        run: uv run --project . python -m unittest discover -s tests
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
           cache-dependency-path: site/package-lock.json
-      - name: site build
+      - name: site build and unit tests
         working-directory: site
         run: |
           npm ci
           npm run build
+          npm test
+      - name: browser smoke test (offline, external hosts blocked)
+        working-directory: site
+        run: |
+          npx playwright install --with-deps chromium
+          npm run test:smoke
+  # tests/recompute_validation.py needs data/raw (gitignored, rebuilt by make data), so it runs locally, not in CI.
   # No deploy job on purpose. Deploying needs the author's yes.

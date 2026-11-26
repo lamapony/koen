@@ -13,6 +13,7 @@ import { startTour } from "./ui/tour";
 import { $, esc, announce, toast } from "./ui/util";
 import { num } from "./format";
 import { installCampaignTracking } from "./funnel/utm";
+import { MODES } from "./modes/modes";
 
 const mobile = matchMedia("(max-width: 760px)").matches;
 const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -31,7 +32,11 @@ async function boot(): Promise<void> {
   ctx.d = d;
   ctx.mobile = mobile;
   ctx.reducedMotion = reducedMotion;
-  initState(d.meta.index.ids, d.meta.index.weights);
+  initState(d.meta.index.ids, d.meta.index.weights, {
+    modes: new Set(MODES.map((m) => m.id)),
+    indicators: new Set(d.meta.indicators.map((m) => m.id)),
+    kommuner: new Set(d.kommuner.map((k) => k.kode)),
+  });
   installCampaignTracking(() => state.mode);
   setLang(state.lang);
   applyTheme();
@@ -209,6 +214,16 @@ function wire(mc: MapController): void {
     if (state.hover) set({ hover: null });
   });
   $("map").addEventListener("tiles-error", () => toast(t().tilesError), { once: true });
+  // The table only exists once the Explorer is open, and a plain #explorer-table jump would wipe the permalink hash.
+  $("skip-link").addEventListener("click", (e) => {
+    e.preventDefault();
+    const focusTable = () => requestAnimationFrame(() => document.getElementById("explorer-table")?.focus());
+    if (state.explorer === "table") focusTable();
+    else {
+      set({ explorer: "table" });
+      queueMicrotask(focusTable);
+    }
+  });
   $("inset").addEventListener("keydown", (e) => {
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
@@ -261,4 +276,11 @@ function wire(mc: MapController): void {
 boot();
 
 // Exposed for screenshots and debugging only.
-(window as unknown as { __koen: unknown }).__koen = { state, set, ctx, lang };
+(window as unknown as { __koen: unknown }).__koen = {
+  get state() {
+    return state; // live binding: state is only created in boot()
+  },
+  set,
+  ctx,
+  lang,
+};

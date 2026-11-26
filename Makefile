@@ -33,7 +33,8 @@ check:
 	cd $(P) && $(PY) 99_check.py
 
 refresh:
-	rm -rf data/raw/dst data/raw/boundaries data/raw/aarhusbolig data/raw/kk data/raw/_fetchlog.json
+	# Nominatim goes too: the fetch log is dropped, and cached reads do not write log entries (geocoder provenance).
+	rm -rf data/raw/dst data/raw/boundaries data/raw/aarhusbolig data/raw/kk data/raw/nominatim data/raw/_fetchlog.json
 	$(MAKE) data
 
 site:

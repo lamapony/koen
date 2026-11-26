@@ -4,6 +4,25 @@ export function esc(s: unknown): string {
 
 export const $ = <T extends HTMLElement = HTMLElement>(id: string): T => document.getElementById(id) as T;
 
+/** Keep Tab and Shift+Tab inside a modal dialog. Call from its keydown handler. */
+export function trapTab(e: KeyboardEvent, el: HTMLElement): void {
+  if (e.key !== "Tab") return;
+  const f = [...el.querySelectorAll<HTMLElement>('a[href],button:not([disabled]),input,select,textarea,summary,[tabindex]:not([tabindex="-1"])')].filter(
+    (x) => x.offsetParent !== null,
+  );
+  if (!f.length) return;
+  const first = f[0];
+  const last = f[f.length - 1];
+  const a = document.activeElement;
+  if (e.shiftKey && (a === first || !el.contains(a))) {
+    e.preventDefault();
+    last.focus();
+  } else if (!e.shiftKey && (a === last || !el.contains(a))) {
+    e.preventDefault();
+    first.focus();
+  }
+}
+
 export const icon = {
   search: '<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.6" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M10.4 10.4 14 14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
   close: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 3.5l9 9M12.5 3.5l-9 9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',

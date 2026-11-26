@@ -56,7 +56,8 @@ class PipelineTests(unittest.TestCase):
             if source['status'] in ('ok', 'runtime'):
                 self.assertTrue(source['licence'].get('url'), source['id'])
         measured = load('measured.json')['aarhusbolig']
-        self.assertTrue(measured['observedAt'].startswith('2017-'))
+        self.assertTrue(measured['fileModifiedAt'].startswith('2017-'))
+        self.assertNotIn('observedAt', measured)
         self.assertIn('2017', measured['label_da'])
         self.assertIn('2017', measured['label_en'])
         for source in sources:

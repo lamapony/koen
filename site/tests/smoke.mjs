@@ -54,6 +54,23 @@ try {
   await page.waitForFunction(() => document.querySelector('#card h2')?.textContent === 'Odense');
   assert.equal(await page.locator('#card a[href*="/lister/andels"]').count(), 0);
   assert.equal(await page.locator('#card a[href*="/fornyelsesradar"]').count(), 1);
+  // A malformed shared URL falls back to defaults instead of breaking the render.
+  const bad = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  await bad.addInitScript(() => localStorage.setItem('koen-intro-seen', '1'));
+  await bad.route('**/*', route => new URL(route.request().url()).hostname === '127.0.0.1' ? route.continue() : route.abort());
+  await bad.goto('http://127.0.0.1:4179/#mode=bogus&e=scatter&x=bogus&y=nope&k=9999&w=0,0,0,0,0,0,0');
+  await bad.waitForSelector('#app[data-loading="false"]', { timeout: 30000 });
+  const st = await bad.evaluate(() => ({ mode: window.__koen.state.mode, x: window.__koen.state.x, k: window.__koen.state.k, w: Object.values(window.__koen.state.w).reduce((a, b) => a + b, 0) }));
+  assert.deepEqual([st.mode, st.x, st.k], ['koetryk', 'B1', null]);
+  assert.ok(st.w > 0, 'all-zero weights rejected');
+  assert.ok(await bad.locator('#scatter').count(), 'scatter rendered');
+  // The skip link opens the table and focuses it, and the permalink hash survives.
+  await bad.evaluate(() => window.__koen.set({ explorer: '' }));
+  await bad.waitForTimeout(100);
+  await bad.locator('#skip-link').focus();
+  await bad.keyboard.press('Enter');
+  await bad.waitForFunction(() => document.activeElement?.id === 'explorer-table');
+  assert.match(await bad.evaluate(() => location.hash), /mode=koetryk/);
   console.log('Offline smoke passed');
 } finally {
   await browser?.close();

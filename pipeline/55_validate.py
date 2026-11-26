@@ -119,9 +119,16 @@ def main() -> int:
     loao = []
     for held in OWNER3:
         train = [c for c in OWNER3 if c != held]
-        best = max(fam_raw, key=lambda n: (auc(fam_raw[n], codes, train), n == "v2"))
+        # The held-out kommune is in neither the training positives nor the negatives, so the choice never sees it.
+        idx_tr = [i for i, c in enumerate(codes) if c != held]
+        codes_tr = [codes[i] for i in idx_tr]
+
+        def train_auc(n: str) -> float:
+            return auc([fam_raw[n][i] for i in idx_tr], codes_tr, train)
+
+        best = max(fam_raw, key=lambda n: (train_auc(n), n == "v2"))
         loao.append({"heldOut": held, "navn": names[held], "chosen": best,
-                     "trainAuc": round(auc(fam_raw[best], codes, train), 3),
+                     "trainAuc": round(train_auc(best), 3),
                      "heldOutRank": ranks(fam_raw[best], codes)[held]})
     family = {n: {"owner3Auc": round(auc(r, codes, OWNER3), 3), "ranks": {c: ranks(r, codes)[c] for c in OWNER3},
                   "aarhusboligRho": evaluate(r, codes, ab)["aarhusbolig"]["rho"]} for n, r in fam_raw.items()}

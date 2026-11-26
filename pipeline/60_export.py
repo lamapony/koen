@@ -47,7 +47,7 @@ def main() -> int:
         if c in maalt:
             pts = maalt[c]
             row["maalt"] = [{
-                "source": a["source"], "sourceUrl": a["sourceUrl"], "observedAt": a["observedAt"],
+                "source": a["source"], "sourceUrl": a["sourceUrl"], "fileModifiedAt": a["fileModifiedAt"],
                 "lists": sum(p["lists"] for p in pts), "signups": sum(p["signups"] for p in pts),
                 "maxList": max(p["maxList"] for p in pts), "postnumre": [p["postnummer"] for p in pts],
             }]

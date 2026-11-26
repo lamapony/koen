@@ -2,7 +2,7 @@
 import { ctx } from "../ctx";
 import { t, label, lang, period } from "../i18n";
 import { num } from "../format";
-import { $, esc, icon } from "./util";
+import { $, esc, icon, trapTab } from "./util";
 import { methodLink } from "../funnel/utm";
 
 const SEEN = "koen-intro-seen"; // localStorage, not a cookie
@@ -44,7 +44,10 @@ export function showIntro(onClose: () => void, onMethod: () => void): void {
   };
   $("intro-go").onclick = close;
   $("intro-method").onclick = () => (close(), onMethod());
-  el.addEventListener("keydown", (e) => e.key === "Escape" && close());
+  el.onkeydown = (e) => {
+    if (e.key === "Escape") close();
+    else trapTab(e, el);
+  };
   requestAnimationFrame(() => $("intro-go").focus());
 }
 
@@ -62,7 +65,10 @@ function openPanel(html: string, labelId: string): void {
     lastFocus?.focus();
   };
   $("panel-close").onclick = close;
-  el.onkeydown = (e) => e.key === "Escape" && close();
+  el.onkeydown = (e) => {
+    if (e.key === "Escape") close();
+    else trapTab(e, el);
+  };
   $("panel-close").focus();
 }
 
@@ -87,7 +93,7 @@ export function showMethod(): void {
       .join("<br>");
   const valDa = v
     ? `<h3>Kontrol mod rigtige køer</h3>
-      <p>Der findes ingen national opgørelse af ventelister, så vi tjekker mod det lidt, der findes: København, Frederiksberg og Aarhus har de længste køer; Ventelistevalgs andelskatalog med offentlige kølængder dækker København og Frederiksberg; Aarhusbolig 2017 har rigtige kølængder for Aarhus, Skanderborg og Favrskov.</p>
+      <p>Der findes ingen national opgørelse af ventelister, så vi tjekker mod det lidt, der findes. Folkene bag Ventelistevalg oplyser ud fra deres erfaring, at København, Frederiksberg og Aarhus har de længste køer (et udsagn, ikke en opgørelse). Ventelistevalgs andelskatalog med offentlige ventelistedata dækker kun København og Frederiksberg (det er dækning, ikke kølængder). Kun Aarhusbolig 2017 har målte tal: tilmeldinger pr. venteliste for Aarhus, Skanderborg og Favrskov.</p>
       <table class="valtab"><thead><tr><th></th><th>v1</th><th>v2</th></tr></thead><tbody>
       <tr><th>Placering</th><td>${rk(v.before)}</td><td>${rk(v.after)}</td></tr>
       <tr><th>AUC, de tre byer</th><td>${num(v.before.owner3.auc, 2)}</td><td>${num(v.after.owner3.auc, 2)}</td></tr>
@@ -97,7 +103,7 @@ export function showMethod(): void {
     : "";
   const valEn = v
     ? `<h3>Checked against real queues</h3>
-      <p>There is no national count of waiting lists, so we check against the little that exists: København, Frederiksberg and Aarhus have the longest queues; Ventelistevalg's co-op catalog with public queue lengths covers København and Frederiksberg; Aarhusbolig 2017 has real queue lengths for Aarhus, Skanderborg and Favrskov.</p>
+      <p>There is no national count of waiting lists, so we check against the little that exists. The people behind Ventelistevalg say from experience that København, Frederiksberg and Aarhus have the longest queues (a statement, not a count). Ventelistevalg's co-op catalog with public waiting list data covers only København and Frederiksberg (that is coverage, not queue length). Only Aarhusbolig 2017 has measured numbers: sign-ups per waiting list for Aarhus, Skanderborg and Favrskov.</p>
       <table class="valtab"><thead><tr><th></th><th>v1</th><th>v2</th></tr></thead><tbody>
       <tr><th>Rank</th><td>${rk(v.before)}</td><td>${rk(v.after)}</td></tr>
       <tr><th>AUC, the three cities</th><td>${num(v.before.owner3.auc, 2)}</td><td>${num(v.after.owner3.auc, 2)}</td></tr>
@@ -109,7 +115,7 @@ export function showMethod(): void {
     ? `<h2 id="m-title">${esc(t().methodTitle)}</h2>
       <p><b>To lag, holdt adskilt.</b> Bjergene er et <b>modelleret køtryk</b> for alle 98 kommuner, bygget kun af åbne tal fra Danmarks Statistik. De blå nåle er <b>målte</b> ventelister, og de findes kun, hvor nogen har offentliggjort dem: i dag Aarhusbolig, et øjebliksbillede fra 2017.</p>
       <p><b>Hvorfor modelleret?</b> Ventelister til andelsboliger og de fleste almene lister er ikke offentlige. Der findes intet nationalt register. Køen opfinder ingen kølængder.</p>
-      <p><b>Hvad måler køtrykket?</b> Hvor mange der står i kø i forhold til kommunens størrelse. Det stiger med tre ting: hvor mange almen- og andelsboliger der er pr. voksen (flere boliger med venteliste giver flere i kø), hvor stor efterspørgslen er (unge voksne, tilflyttere fra udlandet, vækst), og hvor dyrt det er at købe sig ud af køen (bolig mod indkomst). Tomme boliger trækker ned. Version 2 fra november 2026; version 1 vendte boligbestanden den anden vej.</p>
+      <p><b>Hvad måler køtrykket?</b> Et modelleret, relativt pres på køerne i forhold til kommunens størrelse. Det tæller ingen personer. Det stiger med tre ting: hvor mange almen- og andelsboliger der er pr. voksen (flere boliger med venteliste giver flere i kø), hvor stor efterspørgslen er (unge voksne, tilflyttere fra udlandet, vækst), og hvor dyrt det er at købe sig ud af køen (bolig mod indkomst). Tomme boliger trækker ned. Version 2 fra november 2026; version 1 vendte boligbestanden den anden vej.</p>
       <h3>Indikatorerne</h3><ul>${rows}</ul>
       <h3>Beregningen</h3>
       <pre>z = (x − median) / (1,4826 × MAD), begrænset til ±2,5
@@ -125,7 +131,7 @@ køtryk = percentil af råt blandt 98 kommuner (0 til 1)</pre>
     : `<h2 id="m-title">${esc(t().methodTitle)}</h2>
       <p><b>Two layers, kept apart.</b> The mountains are a <b>modelled queue pressure</b> for all 98 kommuner, built only from open Statistics Denmark data. The blue needles are <b>measured</b> waiting lists and exist only where someone published them: today Aarhusbolig, a 2017 snapshot.</p>
       <p><b>Why modelled?</b> Co-op waiting lists and most social housing lists are not public. There is no national register. Køen invents no queue lengths.</p>
-      <p><b>What does it measure?</b> How many people queue relative to the size of the kommune. It rises with three things: how many social and co-op dwellings there are per adult (more dwellings with a waiting list means more people queuing), how strong demand is (young adults, arrivals from abroad, growth), and how expensive it is to buy your way out of the queue (home value to income). Empty dwellings lower it. Version 2 from November 2026; version 1 counted the housing stock the other way round.</p>
+      <p><b>What does it measure?</b> A modelled, relative pressure on the queues for the size of the kommune. It does not count people. It rises with three things: how many social and co-op dwellings there are per adult (more dwellings with a waiting list means more people queuing), how strong demand is (young adults, arrivals from abroad, growth), and how expensive it is to buy your way out of the queue (home value to income). Empty dwellings lower it. Version 2 from November 2026; version 1 counted the housing stock the other way round.</p>
       <h3>Indicators</h3><ul>${rows}</ul>
       <h3>Calculation</h3>
       <pre>z = (x − median) / (1.4826 × MAD), clamped to ±2.5
@@ -149,7 +155,7 @@ export function showSources(): void {
       <span style="color:var(--graa);font-size:12.5px">${esc(s.publisher ?? "")}</span>
       <dl>
         ${s.url ? `<dt>URL</dt><dd><a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.url.replace(/^https?:\/\//, ""))}</a></dd>` : ""}
-        ${s.licence ? `<dt>${esc(c.licence)}</dt><dd><a href="${esc(s.licence.url)}" target="_blank" rel="noopener">${esc(s.licence.name)}</a></dd>` : ""}
+        ${s.licence ? `<dt>${esc(c.licence)}</dt><dd>${s.licence.url ? `<a href="${esc(s.licence.url)}" target="_blank" rel="noopener">${esc(s.licence.name)}</a>` : esc(s.licence.name)}</dd>` : ""}
         ${s.period ? `<dt>${esc(c.period)}</dt><dd>${esc(s.period)}</dd>` : ""}
         ${s.fetchedAt ? `<dt>${esc(c.fetched)}</dt><dd>${esc(s.fetchedAt.slice(0, 10))}</dd>` : ""}
         ${s.rows ? `<dt>${esc(c.rows)}</dt><dd>${num(s.rows)}</dd>` : ""}

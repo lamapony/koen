@@ -80,7 +80,8 @@ def main() -> int:
             check(bool(s.get("licence")) and bool(s.get("fetchedAt")) and bool(s.get("period")), f"{s['id']}: licence, period, fetchedAt")
 
     measured = json.loads((SITE_DATA / "measured.json").read_text("utf-8"))
-    check(measured["aarhusbolig"]["observedAt"].startswith("2017"), "Aarhusbolig labelled 2017")
+    check(measured["aarhusbolig"]["fileModifiedAt"].startswith("2017"), "Aarhusbolig labelled 2017 (file last modified)")
+    check("observedAt" not in measured["aarhusbolig"], "Aarhusbolig carries no invented observation date")
     check(measured.get("ventelistevalg") is None, "Ventelistevalg data not shipped (flag off)")
 
     # No em or en dashes in user-facing copy and docs.

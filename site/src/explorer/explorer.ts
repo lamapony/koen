@@ -25,7 +25,8 @@ export function renderExplorer(): void {
   el.hidden = false;
   el.setAttribute("aria-label", c.title);
   const tab = (id: string, name: string) =>
-    `<button role="tab" type="button" id="tab-${id}" aria-selected="${state.explorer === id}" aria-controls="ex-pane" data-tab="${id}">${esc(name)}</button>`;
+    `<button role="tab" type="button" id="tab-${id}" aria-selected="${state.explorer === id}" tabindex="${state.explorer === id ? 0 : -1}" aria-controls="ex-pane" data-tab="${id}">${esc(name)}</button>`;
+  const tabFocused = (document.activeElement as HTMLElement | null)?.getAttribute("role") === "tab";
   el.innerHTML = `
     <div class="ex-head">
       <h2>${esc(c.title)}</h2>
@@ -37,7 +38,18 @@ export function renderExplorer(): void {
       <button class="btn icon" type="button" id="ex-close" aria-label="${esc(t().explorerClose)}">${icon.close}</button>
     </div>
     <div class="ex-body"><div class="ex-pane" id="ex-pane" role="tabpanel" aria-labelledby="tab-${state.explorer}"></div></div>`;
-  el.querySelectorAll<HTMLButtonElement>("[data-tab]").forEach((b) => (b.onclick = () => set({ explorer: b.dataset.tab as typeof state.explorer })));
+  const tabs = [...el.querySelectorAll<HTMLButtonElement>("[data-tab]")];
+  tabs.forEach((b, i) => {
+    b.onclick = () => set({ explorer: b.dataset.tab as typeof state.explorer });
+    b.onkeydown = (e) => {
+      const j = e.key === "ArrowRight" ? (i + 1) % tabs.length : e.key === "ArrowLeft" ? (i + tabs.length - 1) % tabs.length : e.key === "Home" ? 0 : e.key === "End" ? tabs.length - 1 : -1;
+      if (j < 0) return;
+      e.preventDefault();
+      set({ explorer: tabs[j].dataset.tab as typeof state.explorer });
+    };
+  });
+  // The tab row is rebuilt on every switch; put focus back on the selected tab so keyboard users keep their place.
+  if (tabFocused) document.getElementById(`tab-${state.explorer}`)?.focus();
   $("ex-close").onclick = () => set({ explorer: "" });
   $("ex-share").onclick = async () => {
     const url = `${location.origin}${location.pathname}#${permalink()}`;
@@ -101,7 +113,7 @@ function renderTable(pane: HTMLElement): void {
       <label class="colpick">${esc(c.addColumn)} <select class="sel" id="addcol"><option value="">…</option>${options}</select></label>
       <span class="caps" style="color:var(--graa)">${esc(c.trend)}: ${esc(lang() === "da" ? "befolkning" : "population")} ${history?.POP ? `${history.POP.periods[0].slice(0, 4)} ${to()} ${history.POP.periods.at(-1)!.slice(0, 4)}` : ""}</span>
     </div>
-    <table class="kt" id="explorer-table">
+    <table class="kt" id="explorer-table" tabindex="-1">
       <caption class="sr-only">${esc(c.title)}</caption>
       <thead><tr><th scope="col"><span class="sr-only">#</span></th>${th("navn", c.kommune)}${th("koetryk", c.koetryk + " · " + t().modelled)}${th("band", c.band)}${cols
         .map((id) => th(id, `${id}${unitHint(id)}`, label(d.ind.get(id)!)))
@@ -284,7 +296,15 @@ function renderWeights(pane: HTMLElement): void {
         .join("")}</ol>
     </div></div>`;
   pane.querySelectorAll<HTMLInputElement>("[data-w]").forEach((inp) => {
-    inp.oninput = () => set({ w: { ...state.w, [inp.dataset.w!]: Number(inp.value) } });
+    inp.oninput = () => {
+      const next = { ...state.w, [inp.dataset.w!]: Number(inp.value) };
+      // Never all zero: every kommune would tie and the ranking would be arbitrary. The last slider stops at 1.
+      if (ids.every((id) => next[id] <= 0)) {
+        next[inp.dataset.w!] = 1;
+        inp.value = "1";
+      }
+      set({ w: next });
+    };
   });
   pane.querySelectorAll<HTMLButtonElement>("[data-select]").forEach((b) => (b.onclick = () => set({ k: b.dataset.select! })));
   $("w-reset").onclick = () => set({ w: defaultWeights() });

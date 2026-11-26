@@ -91,6 +91,7 @@ export function renderModes(): void {
   const primary = MODES.filter((m) => !m.more);
   const more = MODES.filter((m) => m.more);
   const moreOpen = moreModesOpen || more.some((m) => m.id === state.mode);
+  const focusedMode = (document.activeElement as HTMLElement | null)?.closest?.("#modes button.chip")?.getAttribute("data-mode");
   el.innerHTML =
     `<h2 class="sr-only">${esc(c.modesLabel)}</h2>` +
     primary.map((m, i) => chip(m, i, true)).join("") +
@@ -99,6 +100,8 @@ export function renderModes(): void {
   el.querySelectorAll<HTMLButtonElement>("button.chip").forEach((b) => {
     b.onclick = () => set({ mode: b.dataset.mode!, alt: false });
   });
+  // The rail is rebuilt on every switch; keep keyboard focus on the chip that was focused.
+  if (focusedMode) el.querySelector<HTMLElement>(`button.chip[data-mode="${focusedMode}"]`)?.focus();
   const det = el.querySelector<HTMLDetailsElement>("#more-modes")!;
   det.addEventListener("toggle", () => (moreModesOpen = det.open));
   // Keep the active lens clear of the rail's bottom fade (vertical rail) or in view (mobile chip row).

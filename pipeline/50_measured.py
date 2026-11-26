@@ -31,6 +31,12 @@ def rows(name: str) -> list[dict]:
     return [{c.tag: (c.text or "").strip() for c in r} for r in root]
 
 
+def ventelister_modified() -> str:
+    pkg = json.loads((RAW / "aarhusbolig" / "package.json").read_text("utf-8"))["result"]
+    res = next(r for r in pkg["resources"] if r.get("name") == "Ventelister.xml")
+    return res["last_modified"][:10]
+
+
 def aarhus() -> dict:
     afd = {r["AfdId"]: r for r in rows("Afdelinger.xml")}
     sel = {r["SelId"]: r["Navn"] for r in rows("Selskaber.xml")}
@@ -88,7 +94,8 @@ def aarhus() -> dict:
         "sourceUrl": AARHUS_PKG,
         "apiUrl": AARHUS_API,
         "licence": "CC BY 4.0",
-        "observedAt": "2017-11-21",
+        # Not an observation date: the publisher gives none. This is the CKAN last_modified of Ventelister.xml.
+        "fileModifiedAt": ventelister_modified(),
         "fetchedAt": info.get("fetchedAt"),
         "totals": {"lists": sum(p["lists"] for p in by_pn.values()), "signups": sum(p["signups"] for p in by_pn.values()),
                    "afdelinger": len(by_afd), "maxList": max(p["maxList"] for p in by_pn.values()), "skippedRows": skipped},
