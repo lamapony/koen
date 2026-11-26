@@ -15,9 +15,9 @@ v1 put Vallensbæk, Brøndby and Høje-Taastrup on top and København at no. 19,
 | D4 | Andel 20 til 34 år | FOLK1A | 15 % | 20 % | mere = højere |
 | D5 | Indvandrede pr. 1.000 indbyggere, gennemsnit 2021 til 2025 | BEV107, FOLK1A | ny | 10 % | mere = højere |
 | D2 | Befolkningsvækst over 5 år | FOLK1A | 15 % | 10 % | mere = højere |
-| P1 | Markedsværdi af andelsboliger mod disponibel indkomst | EJDFOE1, INDKP106 | 15 % | 10 % | mere = højere |
-| P2 | Markedsværdi af ejerlejligheder mod disponibel indkomst | EJDFOE1 (type B), INDKP106 | ny | 10 % | mere = højere |
-| S2 | Boliger uden tilmeldte beboere (ekskl. fritidshuse) | BOL101 | 10 % | 10 % | mere = lavere |
+| P1 | Markedsværdi af andelsboliger mod disponibel indkomst (mindst 50 andelsboliger i opgørelsen) | EJDFOE1, INDKP106 | 15 % | 10 % | mere = højere |
+| P2 | Markedsværdi af ejerlejligheder mod disponibel indkomst (mindst 50 ejerlejligheder i opgørelsen) | EJDFOE1 (type B), INDKP106 | ny | 10 % | mere = højere |
+| S2 | Boliger uden tilmeldte beboere (ubeboede fritidshuse er en egen gruppe og tæller ikke med; beboede fritidshuse er i nævneren) | BOL101 | 10 % | 10 % | mere = lavere |
 | D1, D3, S1 | Voksne pr. bolig, fremskrivning 2036, nybyggeri | | 25 / 10 / 10 % | linse, ingen vægt | |
 
 Three groups, round weights: stock 30 %, demand 40 % (D4 20, D5 10, D2 10), price 20 % (P1 10, P2 10), slack 10 % (S2). The weights were set from what creates queues, not searched for. The validation below was run afterwards and is reported as is.
@@ -35,7 +35,9 @@ køtryk  = percentile rank of raw among the 98 kommuner, 0 to 1 (ties averaged)
 height  = køtryk ^ 1.6
 ```
 
-Uncertainty: 200 Dirichlet weight draws around the defaults (concentration 20, seed 20261126), min to max percentile per kommune. Leave-one-indicator-out Spearman must stay at or above 0.8 (`make check`); v2 values: B1 0.97, D4 0.98, D5 0.99, D2 0.99, P1 0.99, P2 0.99, S2 0.99.
+Uncertainty: 200 Dirichlet weight draws around the defaults (concentration 20, seed 20261126), min to max percentile per kommune. Leave-one-indicator-out Spearman must stay at or above 0.85 (`make check`, raised from 0.8); v2 values: B1 0.96, D4 0.98, D5 0.99, D2 0.99, P1 0.99, P2 0.99, S2 0.99. Because a full-98 Spearman can hide changes at the top, `make check` also requires that at least 7 of the top 10 survive when any one indicator is dropped; v2 keeps 9 or 10 (B1 9, D4 9, D2 9, the rest 10).
+
+P1 and P2 are left out (and their weight renormalised) where EJDFOE1 counts fewer than 50 holdings, because an average over a handful of dwellings is noise: P1 drops Læsø (0), Ærø (8) and Samsø (24); P2 drops Læsø (18), Morsø (38) and Ærø (44). The value lenses (Andelsværdi, Ejerlejlighedsværdi) still show the raw average. No top-15 rank changed.
 
 Code: `pipeline/20_indicators.py` (indicators and weights), `pipeline/30_index.py` (index), `pipeline/55_validate.py` (validation), `site/src/model.ts` (same index in the browser for the weight sliders).
 
@@ -92,7 +94,26 @@ AUC = probability that an anchor kommune ranks above a random other kommune (1 i
 | 14 | Høje-Taastrup | 0.87 | 0.77 to 0.95 |
 | 15 | Tårnby | 0.86 | 0.72 to 0.90 |
 
-Brøndby is first or tied first in six of the eight specs in the family, and second in v1. It has 30.7 almen and andel dwellings per 100 adults, 15 % population growth over five years, and andel and flat values that are high against local incomes. That is a real pattern in the data, not a bug, and it was not tuned away.
+Brøndby is first or tied first in five of the eight specs in the family, and second in v1. It has 30.7 almen and andel dwellings per 100 adults, 15 % population growth over five years, and andel and flat values that are high against local incomes. That is a real pattern in the data, not a bug, and it was not tuned away.
+
+## Independent cross-check (Antigravity/Gemini, 2026-11-26)
+
+`../orch2/agy-method.md` is an independent read-only review of the method. Every claim below was re-run on `data/raw/clean/dst.json` before it was adopted or rejected. Its section 2.1 describes v1 (D1 at weight 25 %), so points that v2 already handles are marked as such.
+
+**Adopted (verified)**
+
+- *Small-n EJDFOE1 averages.* Verified: andel n is 0 / 8 / 24 on Læsø / Ærø / Samsø, flat n is 18 / 38 / 44 on Læsø / Morsø / Ærø. P1 and P2 now need at least 50 holdings. The proposed empirical-Bayes shrinkage was not adopted: it adds a tuning constant (k = 300) for little gain once the n filter is in.
+- *Top-10 gate and a higher LOO floor.* Verified that full-98 Spearman is insensitive to the top tail (v1 passed with København at no. 19). Added the top-10 overlap check (at least 7 of 10) and raised the floor to 0.85. v2 passes both (min 0.96, overlap at least 9).
+- *Clamp sensitivity, as a report.* Verified: with the ±2.5 clamp, D4 (20 to 34 year olds) ties København (34.7 %, unclamped z 7.1) with Brøndby (22.2 %, z 2.7). `55_validate.py` now reports the index with the clamp at 3.5, 4.0 and none: Spearman against the default 0.9996, 0.9995 and 0.9993, and the same top 10 in all three. What changes is the very top: at 4.0 København is no. 1 and Brøndby no. 2; with no clamp København, Frederiksberg, Brøndby are 1 to 3 and Aarhus moves from 10 to 6. The default stays at 2.5. Widening it now, after seeing that it lifts the owner's three cities, would be choosing a parameter by the anchors, which is what this note says we do not do. It is listed for the owner to decide (BUILD-NOTES).
+- *Wording.* S2 said "ekskl. fritidshuse"; BOL101 only puts unoccupied holiday homes in their own group (BEBO 5000), occupied ones stay in. Label fixed. Intro copy now names the v2 parts (immigrants, growth, andel and flat value against income) instead of "nye tilflyttere" and "købe sig ud af køen". The export field `peopleOnLists` (it holds sign-ups, not people) is renamed `signups`. The two EJDFOE1 entries in `sources.json` now have their own titles. Aarhusbolig 8520 and 8680 lost their town name because a row with only the postnummer overwrote it; fixed (Lystrup, Ry). The KK almene entry in `sources.json` now gives the Open Data DK resource date (2015-12-08).
+
+**Rejected, with reason**
+
+- *Net migration (BEV107 B07 + B10) as the demand term.* The review says København has +9.9 per 1,000. That is B10 (net immigration) alone. B07 (net domestic moves) is negative for København every year 2021 to 2025 (-3,839 to -6,868), and B07 + B10 averages +1.2 per 1,000, rank 87 of 98 (Frederiksberg -0.4, rank 93). This confirms the reason it was not used above.
+- *Remove B1 (almen + andel stock).* The review shows correctly that inverting D1 puts Brøndby first (this note says the same: Brøndby is first or tied first in five of eight specs). The disagreement is about the question, not the data: Køen measures how many people queue, and people can only queue where the lists are. B1 stays; the limit is stated below.
+- *P1 over national instead of local income, and P1 switched to flats.* Dividing by one national number makes P1 the plain average value; that is a different construct (wealth level, not affordability), and P2 already carries the flat price. Not changed without the owner.
+- *Log transform of S2, floor area per person (BOL106) as S1, 20-quarter completions.* Each is defensible, none fixes a verified error, and together they would make v2 a different index on the day it was set. Kept as candidates.
+- *The review's own top 15 and LOO values* were computed for its proposed index, not for v2, so they are not comparable with the numbers here.
 
 ## Limits
 

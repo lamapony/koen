@@ -2,11 +2,61 @@
 
 Status: runs locally. Nothing is deployed, pushed or published. No analytics, no email capture, no cookies.
 
+## Pass 4: final pass, review fixes and design quick wins (2026-11-26, night)
+
+Commits on `build/v1`, nothing pushed, merged or deployed.
+
+### Inputs and what came of them
+
+- `../orch2/agy-review.md` (independent QA review) holds one line of intent ("I'll QA the built site ...") and no findings. There were no must-fix items in it to verify.
+- `docs/review/codex-pass2.md`: all items checked. Its fixes (Brøndby "six" to "five" in METHOD.md, the route fixture and `site/tests/ventelistevalg.test.ts`, `tests/recompute_validation.py`) were in the working tree uncommitted; they are committed now. The audit script crashed after the n filter below (a kommune with no price input divided by zero); it now scores such a kommune 0 like `30_index.combine`, and its numbers match `55_validate.py`. Its smoke-test block was a sandbox limit; `npm run test:smoke` passes here.
+- `../orch2/agy-method.md` (independent method cross-check, now with content; in pass 3 it held one line): every claim re-run on the cached DST data. What was adopted and rejected, with numbers, is in `docs/METHOD.md`, section "Independent cross-check".
+
+### Method and data changes
+
+- P1 and P2 need at least 50 EJDFOE1 holdings (drops Læsø, Ærø, Samsø from P1 and Læsø, Morsø, Ærø from P2). No top-15 rank changed.
+- Leave-one-out floor 0.8 to 0.85, plus a new `make check` gate: at least 7 of the top 10 survive when any one indicator is dropped (v2: 9 or 10).
+- `55_validate.py` reports clamp sensitivity (3.5, 4.0, none) and the leave-one-out top-10 overlap; both go to `indicators.json`.
+- Net migration (B07 + B10) re-checked and still rejected: the review's +9.9 per 1,000 for København is B10 alone; with B07 it is +1.2, rank 87.
+- S2 label corrected (only unoccupied holiday homes are excluded). Intro copy (DA, EN) names the actual v2 parts. `peopleOnLists` renamed `signups` (pipeline, site, PLAN.md). EJDFOE1 sources get separate titles. Aarhusbolig 8520 Lystrup and 8680 Ry no longer lose their town name. KK almene source shows the Open Data DK resource date (2015-12-08).
+- Method panel reads the LOO threshold from the data instead of hardcoding 0.8.
+
+### Design critique of the pass 3 screenshots (short)
+
+1. **The map did not say where the story is.** At country zoom only one spot label survived ("BRØNDBY 1,00"), because the top 8 sit within a few pixels in the Copenhagen suburbs. A reader could not find København, Frederiksberg or Aarhus, the three cities the copy talks about, and had no rank to compare. *Fixed:* labels carry their rank ("2. KØBENHAVN ▲ 0,99"); the no. 1 and the four largest cities (København, Aarhus, Odense, Aalborg) are always candidates; neighbouring labels stack on up to four leader heights instead of being dropped; leader heights are in screen pixels so the stack also works on a phone; near a side edge a label hangs inward; labels stay out from under the desktop card.
+2. **Validation table wrapped mid-list** ("Frederiksberg 16, Aarhus / 6") in a narrow mono column, so v1 and v2 could not be read across. *Fixed:* one city per line, ranks in bold.
+3. **Shot 06 showed only the bottom of the card**, so the København rank and band were not in any desktop shot. *Fixed:* 06 now shows the top of the card; 14 (Frederiksberg) still shows the CTA end.
+4. Not changed (bigger than a quick win): the default pitch still hides part of the Copenhagen suburbs behind North Zealand; at 390 px the Frederiksberg label touches the Aarhus label; label width is estimated (7 px per character), so very long names can still crowd.
+
+### Checks
+
+`npm run build`, `npm test` (9 Python + 6 Vitest), `npm run test:smoke` and `make check` (0 failures) pass at the end of this pass. `make data-offline` was re-run from the local cache. All 16 shots in `docs/shots/` retaken.
+
+### Ventelistevalg URLs used (all with utm_source=koen, utm_medium=map, utm_campaign=<view at click time>, utm_content=<placement>)
+
+`https://ventelistevalg.dk/`, `/fornyelsesradar`, `/vejledning`, `/datakilder`, `/lister/andels`, `/lister/almene`, `/lister/andels/bydel/` + `indre-by`, `noerrebro`, `oesterbro`, `vesterbro`, `amager`, `valby`, `vanloese`, `nordvest`, `frederiksberg`. Not linked because they answered 404 live in pass 3: `/ko-vagt`, `/ventelistetjek`, `/foreningsroentgen`.
+
+### What is left
+
+- Clamp: ±2.5 kept. With 4.0 København is no. 1, with no clamp København, Frederiksberg, Brøndby are 1 to 3 (top 10 unchanged in every case). Changing it is an owner call, see below.
+- Fonts: OFL licence files still missing next to the WOFF2 files.
+- Map chunk 554 KB gzip; Lighthouse and screen-reader passes not done; no full focus trap in dialogs.
+- DAGI boundaries, LBF data (needs permission), Eurostat population mask, press kit.
+- Fornyelsesradar price (99 kr/år) to re-check right before launch.
+
+### What the owner must approve
+
+1. Brøndby as no. 1 in the default ranking (it is a property of B1, see METHOD.md), or the clamp at 4.0 (København no. 1, Spearman 0.9995 against today), knowing that the second option was found after looking at the anchors.
+2. Whether P1 should stay "andel value against local income" (current) or change construct, as the cross-check proposes.
+3. Serving Køen at `ventelistevalg.dk/koen` via the `koen-integration` branch in `../andelplan` (rewrite plus CSP rule, off unless `KOEN_ORIGIN` is set), or a subdomain (needs a DNS change).
+4. Push, merge and deploy of `build/v1`. Second-model review before merge per the merge gate.
+5. The Ventelistevalg catalog layer (flag off; Waitly reuse rights not cleared).
+
 ## Pass 3: Køtryk v2, Ventelistevalg funnel, first screen (2026-11-26, evening)
 
 Owner decisions were delegated to the builder for this pass. Commits on `build/v1`, nothing pushed.
 
-Inputs: `../orch2/agy-method.md` holds one line ("I am starting by inspecting the files...") and no findings, so there was nothing to verify or apply from it. `docs/review/*.md` as before.
+Inputs: at the time of pass 3, `../orch2/agy-method.md` held one line ("I am starting by inspecting the files...") and no findings. It has content now; see pass 4. `docs/review/*.md` as before.
 
 ### 1. Ranking method (details in `docs/METHOD.md`)
 
@@ -15,7 +65,7 @@ Inputs: `../orch2/agy-method.md` holds one line ("I am starting by inspecting th
 - Weights: B1 30, D4 20, D5 10, D2 10, P1 10, P2 10, S2 10 (round, set before validation).
 - `pipeline/55_validate.py` (new, runs in `make process`): AUC and Spearman vs three anchors for v1 and v2, leave-one-anchor-out over a fixed family of 8 specs, share of weight draws keeping the anchors in the top 15, and a KK almene count check. `make check` fails if v2 AUC drops below 0.9 or below v1.
 - Result: København / Frederiksberg / Aarhus at **2 / 3 / 10** (v1: 19 / 16 / 6). Owner3 AUC 0.877 to 0.968; Ventelistevalg AUC 0.833 to 0.990; Aarhusbolig Spearman 0.50 to 1.00 (n = 3). Leave-one-anchor-out puts the held-out city at rank 2, 2 and 4. "Price only" scores higher on the anchors and was not adopted (METHOD.md says why).
-- Brøndby is no. 1. It is first or tied first in six of eight specs, so it is a property of the data, not a weight artefact, and it was not tuned away. The method panel says that the most almen suburbs rank high.
+- Brøndby is no. 1. It is first or tied first in five of eight specs (corrected from six in pass 4), so it is a property of the data, not a weight artefact, and it was not tuned away. The method panel says that the most almen suburbs rank high.
 - `pipeline/common.py` imports `requests` lazily, so offline steps run with the system Python.
 
 ### 2. Ventelistevalg integration (details in `docs/INTEGRATION.md`)
@@ -70,7 +120,7 @@ cd site && npm run shots                   # Playwright screenshots into docs/sh
 
 | Script | Does |
 | --- | --- |
-| `00_fetch_dst.py` | 12 StatBank queries over 9 tables (BOL101, FOLK1A, FRKM126, EJDFOE1, INDKP106, BYGV33, BOST63, FLY66, BOL106). Periods are resolved from `/tableinfo` at fetch time, never hardcoded. |
+| `00_fetch_dst.py` | 14 StatBank queries over 10 tables (BOL101, FOLK1A, FRKM126, EJDFOE1, INDKP106, BYGV33, BOST63, FLY66, BOL106, BEV107; BEV107 and the second EJDFOE1 query added in pass 3). Periods are resolved from `/tableinfo` at fetch time, never hardcoded. |
 | `01_fetch_boundaries.py` | geoBoundaries DNK ADM2 (Public Domain), names mapped to DST kommunekoder (3 name fixes). **Adapter seam**: `BOUNDARY_SOURCE=dagi` calls `fetch_dagi()`, a clear TODO for Datafordeler DAGI with credentials from env vars only. |
 | `02_fetch_queues.py` | Aarhusbolig XML (Ventelister, Afdelinger, Selskaber) and the KK almene boliger GeoJSON, both resolved through the CKAN API. 28 postcode centroids from OSM Nominatim (one request per postcode, cached, 1.2 s apart). |
 | `10_clean.py` | Tidy per-kommune series. DST `..` becomes null, nothing is zero-filled. |
@@ -84,7 +134,7 @@ cd site && npm run shots                   # Playwright screenshots into docs/sh
 
 Spot values match PLAN.md: BOL101 København EJER 20 occupied 2026 = 61,847; EJER 41 = 94,824; EJDFOE1 andelsbolig 2025 København 1,736,991 kr. and Frederiksberg 2,422,337 kr.
 
-Leave-one-out Spearman: D1 0.93, D2 0.97, D3 0.99, D4 0.93, P1 0.93, S1 0.98, S2 0.98.
+Leave-one-out Spearman (v1, first build): D1 0.93, D2 0.97, D3 0.99, D4 0.93, P1 0.93, S1 0.98, S2 0.98. For v2 see METHOD.md.
 
 Output size: `site/public/data` is 664 KB on disk (kommuner.json 49 KB raw, hex7.bin 92 KB, kk_almene.geojson 205 KB loaded only in the almene lens).
 
@@ -136,7 +186,7 @@ Output size: `site/public/data` is 664 KB on disk (kommuner.json 49 KB raw, hex7
 
 ## Design pass (2026-11-26)
 
-Full critique: `docs/review/design-critique.md`. The Gemini data review (`docs/review/gemini-data-review.md`) is an empty file, so there were no findings from it to apply; the data and licence fixes below come from my own check against `sources.json`.
+Full critique: `docs/review/design-critique.md`. The Gemini data review (`docs/review/gemini-data-review.md`) is a short note saying the review was not run (no Gemini auth on the build Mac), so there were no findings from it to apply; the data and licence fixes below come from my own check against `sources.json`.
 
 Applied:
 
