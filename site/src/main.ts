@@ -86,12 +86,22 @@ function labelsFor(): { k: number; text: string }[] {
   const m = ctx.mode;
   if (state.mode === "maalt") return [];
   const n = mobile ? 4 : 8;
-  return m.values
+  const ranked = m.values
     .map((v, i) => [v, i] as const)
     .filter(([v]) => v !== null)
-    .sort((a, b) => (b[0] as number) - (a[0] as number))
-    .slice(0, n)
-    .map(([v, i]) => ({ k: i, text: `${ctx.d.kommuner[i].navn.toUpperCase()}  ▲ ${shortVal(v as number)}` }));
+    .sort((a, b) => (b[0] as number) - (a[0] as number));
+  // The top of the ranking sits in the Copenhagen suburbs, so collision used to leave one label and no way to
+  // find the big cities. Order for collision (earlier entries win): the no. 1, then the four largest cities as
+  // reference points, then the rest of the top n. Every label carries its rank so readers can compare.
+  const REF = ["0101", "0751", "0461", "0851"];
+  const isRef = (i: number) => REF.includes(ctx.d.kommuner[i].kode);
+  const refs = ranked.filter(([, i], r) => r > 0 && isRef(i));
+  const rest = ranked.slice(1, n).filter(([, i]) => !isRef(i));
+  const rankOf = new Map(ranked.map(([, i], r) => [i, r + 1]));
+  return [...ranked.slice(0, 1), ...refs, ...rest].map(([v, i]) => ({
+    k: i,
+    text: `${rankOf.get(i)}. ${ctx.d.kommuner[i].navn.toUpperCase()}  ▲ ${shortVal(v as number)}`,
+  }));
 }
 
 function shortVal(v: number): string {

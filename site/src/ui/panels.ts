@@ -77,14 +77,19 @@ export function showMethod(): void {
       return `<li><b>${esc(id)} ${esc(label(m))}</b> (${Math.round((m.w ?? 0) * 100)} %${m.dir === -1 ? (da ? ", trækker ned" : ", lowers the index") : ""}): ${esc(da ? m.formula_da : m.formula_en)} <span class="mono" style="color:var(--graa)">${esc(period(m.period))}</span></li>`;
     })
     .join("");
+  const looMin = num(d.meta.index.params?.looMin ?? 0.85, 2);
   const looTxt = ids.map((id) => `${id} ${num(loo[id], 2)}`).join(" · ");
   const v = d.meta.index.validation;
-  const rk = (e: NonNullable<typeof v>["after"]) => `København ${num(e.ranks["0101"], 0)}, Frederiksberg ${num(e.ranks["0147"], 0)}, Aarhus ${num(e.ranks["0751"], 0)}`;
+  // One city per line, so the numbers line up in the column instead of wrapping mid-list.
+  const rk = (e: NonNullable<typeof v>["after"]) =>
+    [["København", "0101"], ["Frederiksberg", "0147"], ["Aarhus", "0751"]]
+      .map(([n, k]) => `${esc(n)} <b>${num(e.ranks[k], 0)}</b>`)
+      .join("<br>");
   const valDa = v
     ? `<h3>Kontrol mod rigtige køer</h3>
       <p>Der findes ingen national opgørelse af ventelister, så vi tjekker mod det lidt, der findes: København, Frederiksberg og Aarhus har de længste køer; Ventelistevalgs andelskatalog med offentlige kølængder dækker København og Frederiksberg; Aarhusbolig 2017 har rigtige kølængder for Aarhus, Skanderborg og Favrskov.</p>
       <table class="valtab"><thead><tr><th></th><th>v1</th><th>v2</th></tr></thead><tbody>
-      <tr><th>Placering</th><td>${esc(rk(v.before))}</td><td>${esc(rk(v.after))}</td></tr>
+      <tr><th>Placering</th><td>${rk(v.before)}</td><td>${rk(v.after)}</td></tr>
       <tr><th>AUC, de tre byer</th><td>${num(v.before.owner3.auc, 2)}</td><td>${num(v.after.owner3.auc, 2)}</td></tr>
       <tr><th>Spearman, Aarhusbolig (3 kommuner)</th><td>${num(v.before.aarhusbolig.rho, 2)}</td><td>${num(v.after.aarhusbolig.rho, 2)}</td></tr>
       </tbody></table>
@@ -94,7 +99,7 @@ export function showMethod(): void {
     ? `<h3>Checked against real queues</h3>
       <p>There is no national count of waiting lists, so we check against the little that exists: København, Frederiksberg and Aarhus have the longest queues; Ventelistevalg's co-op catalog with public queue lengths covers København and Frederiksberg; Aarhusbolig 2017 has real queue lengths for Aarhus, Skanderborg and Favrskov.</p>
       <table class="valtab"><thead><tr><th></th><th>v1</th><th>v2</th></tr></thead><tbody>
-      <tr><th>Rank</th><td>${esc(rk(v.before))}</td><td>${esc(rk(v.after))}</td></tr>
+      <tr><th>Rank</th><td>${rk(v.before)}</td><td>${rk(v.after)}</td></tr>
       <tr><th>AUC, the three cities</th><td>${num(v.before.owner3.auc, 2)}</td><td>${num(v.after.owner3.auc, 2)}</td></tr>
       <tr><th>Spearman, Aarhusbolig (3 kommuner)</th><td>${num(v.before.aarhusbolig.rho, 2)}</td><td>${num(v.after.aarhusbolig.rho, 2)}</td></tr>
       </tbody></table>
@@ -113,7 +118,7 @@ køtryk = percentil af råt blandt 98 kommuner (0 til 1)</pre>
       <p>Robuste z-værdier gør, at én ekstrem kommune ikke trækker skalaen. Højden er <code>køtryk^1,6</code>, så toppen står tydeligt frem.</p>
       ${valDa}
       <h3>Usikkerhed</h3>
-      <p>Vi regner indekset om med 200 tilfældige vægtsæt omkring standardvægtene. Kortet viser spændet for hver kommune, og visningen Usikkerhed gør det til terræn. Hver indikator er testet ved at fjerne den: rangfølgen ændrer sig kun lidt (Spearman ${esc(looTxt)}; kravet er mindst 0,8).</p>
+      <p>Vi regner indekset om med 200 tilfældige vægtsæt omkring standardvægtene. Kortet viser spændet for hver kommune, og visningen Usikkerhed gør det til terræn. Hver indikator er testet ved at fjerne den: rangfølgen ændrer sig kun lidt (Spearman ${esc(looTxt)}; kravet er mindst ${esc(looMin)}).</p>
       <h3>Det ved vi ikke</h3>
       <p>Køtrykket siger ikke, hvor lang den enkelte liste er, og de mest almene forstæder (fx Brøndby, Ishøj, Albertslund) ligger højt, fordi de har mange boliger med venteliste. Kommunegrænserne er grove (geoBoundaries, Public Domain) og skal erstattes af DAGI. EJDFOE1 er en formuestatistik, ikke salgspriser. Huslejer indgår ikke, fordi Køen ikke har en åben huslejekilde pr. kommune. Én person kan stå på flere lister, så tilmeldinger er ikke personer.</p>
       <p>Du kan selv ændre vægtene under <b>Udforsk</b>, Byg dit eget køtryk. Ventelistevalg beskriver sine egne kilder på <a href="${esc(methodLink())}" target="_blank" rel="noopener">Datakilder</a>.</p>`
@@ -129,7 +134,7 @@ pressure = percentile of raw among 98 kommuner (0 to 1)</pre>
       <p>Robust z-scores keep one extreme kommune from stretching the scale. Height is <code>pressure^1.6</code> so the top stands out.</p>
       ${valEn}
       <h3>Uncertainty</h3>
-      <p>We recompute the index with 200 random weight sets around the defaults. The card shows the range per kommune, and the Uncertainty view turns it into terrain. Each indicator was tested by leaving it out: the ranking barely moves (Spearman ${esc(looTxt)}; the threshold is 0.8).</p>
+      <p>We recompute the index with 200 random weight sets around the defaults. The card shows the range per kommune, and the Uncertainty view turns it into terrain. Each indicator was tested by leaving it out: the ranking barely moves (Spearman ${esc(looTxt)}; the threshold is ${esc(looMin)}).</p>
       <h3>What we do not know</h3>
       <p>The index does not say how long a single list is, and the suburbs with the most social housing (e.g. Brøndby, Ishøj, Albertslund) rank high because they have many dwellings with a waiting list. Kommune boundaries are coarse (geoBoundaries, Public Domain) and will be replaced by DAGI. EJDFOE1 is a wealth statistic, not sales prices. Rents are not included because Køen has no open rent source per kommune. One person can be on several lists, so sign-ups are not people.</p>
       <p>You can change the weights yourself under <b>Explore</b>, Build your own index. Ventelistevalg documents its own sources on <a href="${esc(methodLink())}" target="_blank" rel="noopener">Datakilder</a>.</p>`;

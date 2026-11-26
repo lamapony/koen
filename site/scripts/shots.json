@@ -21,8 +21,7 @@
   },
   {
     "out": "../docs/shots/06-kommune-card-cta.png",
-    "hash": "mode=koetryk&k=0101",
-    "js": "document.getElementById('card').scrollTop=99999"
+    "hash": "mode=koetryk&k=0101"
   },
   {
     "out": "../docs/shots/07-mobile-country.png",

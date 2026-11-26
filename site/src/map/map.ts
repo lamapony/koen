@@ -208,7 +208,14 @@ export function createMap(container: HTMLElement, inset: HTMLElement, d: AppData
     const w = c.clientWidth;
     const h = c.clientHeight;
     if (opts.mobile) return { x0: 8, y0: 84, x1: w - 8, y1: h - (pad.bottom || 90) - 8 };
-    return { x0: (pad.left ?? 0) + 24, y0: 70, x1: w - (pad.right ?? 0) - 24, y1: h - 48 };
+    let x1 = w - (pad.right ?? 0) - 24;
+    // The desktop card floats over the map without map padding; keep labels out from under it.
+    const card = document.getElementById("card");
+    if (card && !card.hidden) {
+      const left = card.getBoundingClientRect().left - c.getBoundingClientRect().left;
+      if (left > 0) x1 = Math.min(x1, left - 12);
+    }
+    return { x0: (pad.left ?? 0) + 24, y0: 70, x1, y1: h - 48 };
   }
   function inBox(p: { x: number; y: number }, halfW: number, box = visibleBox()): boolean {
     return p.x - halfW >= box.x0 && p.x + halfW <= box.x1 && p.y >= box.y0 && p.y <= box.y1;
@@ -408,22 +415,41 @@ export function createMap(container: HTMLElement, inset: HTMLElement, d: AppData
     if (inp.labels.length) {
       const pos = (k: number): [number, number, number] => [...geo.centroid[k], elevOf(inp, k) * scale];
       // Stagger leader heights so neighbouring spot heights (e.g. the Copenhagen suburbs) separate.
-      const lift = (i: number) => (7000 + (i % 4) * 9000) * scale;
+      // Leader heights are set in screen pixels (converted to metres at the current zoom and pitch), so the
+      // stacking works the same on a phone at country zoom as on a desktop.
+      const mpp = (40075016.686 * Math.cos((map.getCenter().lat * Math.PI) / 180)) / (512 * 2 ** map.getZoom());
+      const pitchF = Math.max(Math.sin((map.getPitch() * Math.PI) / 180), 0.35);
+      const liftPx = (i: number) => 18 + (i % 4) * 22;
+      const lift = (i: number) => (liftPx(i) * mpp) / pitchF;
       // Greedy screen-space collision: keep higher-ranked labels, drop ones whose anchors crowd them.
-      const kept: { x: number; y: number }[] = [];
+      // Each label takes the lowest leader height (slot) where it does not crowd an earlier label, so
+      // neighbours such as Brøndby and København stack at different heights instead of one being dropped.
+      const kept: { x: number; y: number; w: number; slot: number }[] = [];
       const box = visibleBox();
       const lab = inp.labels
-        .map((l, i) => ({ ...l, i }))
-        .filter((l) => {
+        .map((l) => {
           const p = map.project(geo.centroid[l.k] as [number, number]);
           const w = l.text.length * 7 + 12;
-          // Never under the sheet, the card or past the screen edge.
-          if (!inBox(p, w / 2, box)) return false;
-          const clash = kept.some((q) => Math.abs(q.x - p.x) < w && Math.abs(q.y - p.y) < 48);
-          if (!clash) kept.push(p);
-          return !clash;
+          // Never under the sheet, the card or past the screen edge. Near a side edge the label hangs to the
+          // inner side of its leader instead of being dropped (on mobile København sits close to the right edge).
+          let anchor: "middle" | "end" | "start" = "middle";
+          let cx = p.x;
+          if (!inBox(p, w / 2, box)) {
+            if (inBox({ x: p.x - w / 2, y: p.y }, w / 2, box)) [anchor, cx] = ["end", p.x - w / 2 + 6];
+            else if (inBox({ x: p.x + w / 2, y: p.y }, w / 2, box)) [anchor, cx] = ["start", p.x + w / 2 - 6];
+            else return null;
+          }
+          for (let slot = 0; slot < 4; slot++) {
+            const ly = p.y - liftPx(slot);
+            const clash = kept.some((q) => Math.abs(q.x - cx) < (w + q.w) / 2 + 6 && Math.abs(q.y - ly) < 19);
+            if (!clash) {
+              kept.push({ x: cx, y: ly, w, slot });
+              return { ...l, i: slot, anchor };
+            }
+          }
+          return null;
         })
-        .map((l, i) => ({ ...l, i }));
+        .filter((l): l is { k: number; text: string; i: number; anchor: "middle" | "end" | "start" } => l !== null);
       out.push(
         new LineLayer<{ k: number; i: number }>({
           id: "leaders",
@@ -437,9 +463,9 @@ export function createMap(container: HTMLElement, inset: HTMLElement, d: AppData
           getWidth: 1,
           widthUnits: "pixels",
           parameters: { depthTest: false } as never,
-          updateTriggers: { getSourcePosition: trig.concat(scale), getTargetPosition: trig.concat(scale) },
+          updateTriggers: { getSourcePosition: trig.concat(scale), getTargetPosition: trig.concat(scale, mpp, pitchF) },
         }),
-        new TextLayer<{ k: number; text: string; i: number }>({
+        new TextLayer<{ k: number; text: string; i: number; anchor: "middle" | "end" | "start" }>({
           id: "labels",
           data: lab,
           getPosition: (l) => {
@@ -452,14 +478,14 @@ export function createMap(container: HTMLElement, inset: HTMLElement, d: AppData
           fontFamily: '"IBM Plex Mono", ui-monospace, monospace',
           fontWeight: 500,
           characterSet: "auto",
-          getTextAnchor: "middle",
+          getTextAnchor: (l) => l.anchor,
           getAlignmentBaseline: "bottom",
-          getPixelOffset: [0, -3],
+          getPixelOffset: (l) => [l.anchor === "end" ? 6 : l.anchor === "start" ? -6 : 0, -3],
           background: true,
           getBackgroundColor: [...hexToRgb(T.land), 225] as [number, number, number, number],
           backgroundPadding: [4, 2, 4, 1],
           parameters: { depthTest: false } as never,
-          updateTriggers: { getPosition: trig.concat(scale), getText: [inp.labels], getColor: [inp.theme], getBackgroundColor: [inp.theme] },
+          updateTriggers: { getPosition: trig.concat(scale, mpp, pitchF), getText: [inp.labels], getTextAnchor: [inp.labels, trig], getPixelOffset: [inp.labels, trig], getColor: [inp.theme], getBackgroundColor: [inp.theme] },
         }),
       );
     }
