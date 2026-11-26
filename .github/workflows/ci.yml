@@ -34,5 +34,6 @@ jobs:
         run: |
           npx playwright install --with-deps chromium
           npm run test:smoke
+          npm run test:smoke:dist
   # tests/recompute_validation.py needs data/raw (gitignored, rebuilt by make data), so it runs locally, not in CI.
   # No deploy job on purpose. Deploying needs the author's yes.

@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "shots": "node scripts/shots.mjs scripts/shots.json",
     "test": "vitest run",
-    "test:smoke": "node tests/smoke.mjs"
+    "test:smoke": "node tests/smoke.mjs",
+    "test:smoke:dist": "SMOKE_DIST=1 node tests/smoke.mjs"
   },
   "dependencies": {
     "@deck.gl/core": "^9.4.2",

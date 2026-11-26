@@ -1,7 +1,9 @@
 import { chromium } from 'playwright';
 import { spawn } from 'node:child_process';
 import assert from 'node:assert/strict';
-const server = spawn('npm', ['run', 'dev', '--', '--host', '127.0.0.1', '--port', '4179', '--strictPort'], { stdio: 'ignore' });
+// SMOKE_DIST=1 runs the same checks against the production build (vite preview of dist/, run npm run build first).
+const script = process.env.SMOKE_DIST ? 'preview' : 'dev';
+const server = spawn('npm', ['run', script, '--', '--host', '127.0.0.1', '--port', '4179', '--strictPort'], { stdio: 'ignore' });
 let browser;
 try {
   for (let i = 0; i < 600; i++) {
@@ -71,6 +73,21 @@ try {
   await bad.keyboard.press('Enter');
   await bad.waitForFunction(() => document.activeElement?.id === 'explorer-table');
   assert.match(await bad.evaluate(() => location.hash), /mode=koetryk/);
+  // Lazy-loaded views still open: method panel and sources panel (with the font licences).
+  await bad.click('#btn-method');
+  await bad.waitForSelector('#panel #m-title');
+  await bad.keyboard.press('Escape');
+  await bad.click('#btn-sources');
+  await bad.waitForSelector('#panel a[href$="fonts/OFL-ibm-plex-mono.txt"]');
+  await bad.keyboard.press('Escape');
+  // First visit: the intro dialog opens on the basemap load event, which may not fire with external tiles blocked,
+  // so the lazy panels chunk is checked only when the dialog is shown.
+  const fresh = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  await fresh.route('**/*', route => new URL(route.request().url()).hostname === '127.0.0.1' ? route.continue() : route.abort());
+  await fresh.goto('http://127.0.0.1:4179/');
+  await fresh.waitForSelector('#app[data-loading="false"]', { timeout: 30000 });
+  await fresh.waitForTimeout(1500);
+  if (await fresh.locator('#intro:not([hidden])').count()) assert.ok(await fresh.locator('#intro-title').count());
   console.log('Offline smoke passed');
 } finally {
   await browser?.close();

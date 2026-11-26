@@ -3,13 +3,20 @@ import { loadAll, loadKK } from "./data";
 import { ctx, recomputeIndex, recomputeMode } from "./ctx";
 import { initState, state, set, subscribe, writeHash, type State } from "./state";
 import { setLang, t, lang } from "./i18n";
-import { buildGeo, setDelays } from "./map/geometry";
 import type { MapController } from "./map/map";
 import { renderMasthead, renderModes, renderLegend, renderFooter, fmtModeValue } from "./ui/chrome";
 import { renderCard } from "./ui/card";
-import { renderExplorer, renderBody, syncTableHighlight, rerenderWeightsKeepFocus } from "./explorer/explorer";
-import { maybeIntro, showMethod, showSources } from "./ui/panels";
-import { startTour } from "./ui/tour";
+// Secondary views load on first use, so the first chunk carries only the shell (docs/review/lighthouse.md).
+const panels = () => import("./ui/panels");
+const explorerMod = () => import("./explorer/explorer");
+let explorer: Awaited<ReturnType<typeof explorerMod>> | null = null;
+const showMethod = (): void => void panels().then((m) => m.showMethod());
+const showSources = (): void => void panels().then((m) => m.showSources());
+/** Run fn with the Explorer module; loads it the first time the Explorer opens. */
+function withExplorer(fn: (m: NonNullable<typeof explorer>) => void): void {
+  if (explorer) fn(explorer);
+  else if (state.explorer) explorerMod().then((m) => ((explorer = m), fn(m)));
+}
 import { $, esc, announce, toast } from "./ui/util";
 import { num } from "./format";
 import { installCampaignTracking } from "./funnel/utm";
@@ -21,6 +28,8 @@ const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 async function boot(): Promise<void> {
   // MapLibre + deck.gl are most of the bytes: fetch that chunk in parallel with the data, not before it.
   const mapModule = import("./map/map");
+  // h3-js (geometry) is the largest piece of app code; fetch it in parallel with the data too.
+  const geoModule = import("./map/geometry");
   let d;
   try {
     d = await loadAll(mobile ? 6 : 7);
@@ -40,6 +49,7 @@ async function boot(): Promise<void> {
   installCampaignTracking(() => state.mode);
   setLang(state.lang);
   applyTheme();
+  const { buildGeo, setDelays } = await geoModule;
   ctx.geo = buildGeo(d);
   const originK = (state.k && d.byKode.get(state.k)) || d.byKode.get("0101")!;
   setDelays(ctx.geo, originK.centroid);
@@ -72,8 +82,10 @@ async function boot(): Promise<void> {
   let loadFired = false;
   mc.map.once("load", () => {
     loadFired = true;
-    const shown = maybeIntro(start, showMethod);
-    if (!shown) start();
+    panels().then((m) => {
+      const shown = m.maybeIntro(start, showMethod);
+      if (!shown) start();
+    }, start);
   });
   // If the basemap never loads (offline), still rise. map.loaded() is false while tiles stream,
   // which used to start the rise behind an open intro dialog, so track the load event instead.
@@ -162,7 +174,7 @@ function renderAll(mc: MapController): void {
   renderLegend(showMethod, showSources);
   renderFooter();
   renderCard();
-  renderExplorer();
+  withExplorer((m) => m.renderExplorer());
   renderMap(mc);
   $("skip-link").textContent = t().skip;
   wireMasthead(mc);
@@ -171,7 +183,7 @@ function renderAll(mc: MapController): void {
 function wireMasthead(mc: MapController): void {
   $("btn-method")!.onclick = showMethod;
   $("btn-sources")!.onclick = showSources;
-  $("btn-tour")!.onclick = () => startTour(mc);
+  $("btn-tour")!.onclick = () => void import("./ui/tour").then((m) => m.startTour(mc));
 }
 
 function wire(mc: MapController): void {
@@ -217,12 +229,15 @@ function wire(mc: MapController): void {
   // The table only exists once the Explorer is open, and a plain #explorer-table jump would wipe the permalink hash.
   $("skip-link").addEventListener("click", (e) => {
     e.preventDefault();
-    const focusTable = () => requestAnimationFrame(() => document.getElementById("explorer-table")?.focus());
-    if (state.explorer === "table") focusTable();
-    else {
-      set({ explorer: "table" });
-      queueMicrotask(focusTable);
-    }
+    // The Explorer module loads on first use, so wait (up to about 3 s) for the table to exist.
+    let tries = 0;
+    const focusTable = (): void => {
+      const tbl = document.getElementById("explorer-table");
+      if (tbl) tbl.focus();
+      else if (tries++ < 180) requestAnimationFrame(focusTable);
+    };
+    if (state.explorer !== "table") set({ explorer: "table" });
+    requestAnimationFrame(focusTable);
   });
   $("inset").addEventListener("keydown", (e) => {
     if (e.key === "Enter" || e.key === " ") {
@@ -265,10 +280,10 @@ function wire(mc: MapController): void {
         if (mobile && s.explorer) set({ explorer: "" });
       }
     }
-    if (ch.has("explorer")) renderExplorer();
-    else if (ch.has("w") && s.explorer === "weights") rerenderWeightsKeepFocus();
-    else if (ch.has("x") || ch.has("y") || ch.has("cols") || ch.has("sort") || ch.has("brushed") || ch.has("w") || ch.has("theme") || (ch.has("k") && s.explorer === "scatter")) renderBody();
-    else if (ch.has("hover") || ch.has("k")) syncTableHighlight();
+    if (ch.has("explorer")) withExplorer((m) => m.renderExplorer());
+    else if (ch.has("w") && s.explorer === "weights") withExplorer((m) => m.rerenderWeightsKeepFocus());
+    else if (ch.has("x") || ch.has("y") || ch.has("cols") || ch.has("sort") || ch.has("brushed") || ch.has("w") || ch.has("theme") || (ch.has("k") && s.explorer === "scatter")) withExplorer((m) => m.renderBody());
+    else if (ch.has("hover") || ch.has("k")) withExplorer((m) => m.syncTableHighlight());
     renderMap(mc);
   });
 }
