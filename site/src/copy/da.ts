@@ -164,6 +164,8 @@ export const da = {
     fetched: "Hentet",
     licence: "Licens",
     period: "Periode",
+    fontsTitle: "Skrifttyper",
+    fontsIntro: "Selvhostede skrifttyper, alle under SIL Open Font License 1.1. Licensteksterne ligger ved siden af skriftfilerne.",
     rows: "Rækker",
     status: { ok: "OK", missing: "Mangler", "flag-off": "Slået fra", runtime: "Hentes i browseren" } as Record<string, string>,
   },

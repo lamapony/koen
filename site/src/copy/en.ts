@@ -163,6 +163,8 @@ export const en: Copy = {
     fetched: "Fetched",
     licence: "Licence",
     period: "Period",
+    fontsTitle: "Fonts",
+    fontsIntro: "Self-hosted fonts, all under the SIL Open Font License 1.1. The licence texts sit next to the font files.",
     rows: "Rows",
     status: { ok: "OK", missing: "Missing", "flag-off": "Switched off", runtime: "Loaded in the browser" },
   },

@@ -23,4 +23,5 @@ The pipeline needs [uv](https://docs.astral.sh/uv/) and Python 3.12. All process
 ## Licence
 
 - Code: [MIT](LICENSE).
+- Fonts: Source Sans 3 and Source Serif 4 (Adobe) and IBM Plex Mono (IBM), self-hosted in `site/public/fonts/`, all under the SIL Open Font License 1.1. The upstream licence files sit next to the WOFF2 files (`OFL-*.txt`, see `site/public/fonts/README.txt`).
 - Data: each source keeps its own licence (for example CC BY 4.0 for Danmarks Statistik and opendata.dk datasets, ODbL for OpenStreetMap). See the source tables in [PLAN.md](PLAN.md) for the full list and required attribution.

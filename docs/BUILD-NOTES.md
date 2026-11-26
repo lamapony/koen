@@ -39,7 +39,7 @@ Commits on `build/v1`, nothing pushed, merged or deployed.
 ### What is left
 
 - Clamp: ±2.5 kept. With 4.0 København is no. 1, with no clamp København, Frederiksberg, Brøndby are 1 to 3 (top 10 unchanged in every case). Changing it is an owner call, see below.
-- Fonts: OFL licence files still missing next to the WOFF2 files.
+- Fonts: OFL licence files still missing next to the WOFF2 files. (Done in pass 5, see below.)
 - Map chunk 554 KB gzip; Lighthouse and screen-reader passes not done; no full focus trap in dialogs.
 - DAGI boundaries, LBF data (needs permission), Eurostat population mask, press kit.
 - Fornyelsesradar price (99 kr/år) to re-check right before launch.
@@ -207,7 +207,7 @@ Applied:
 - deck.gl TextLayer label backgrounds are slightly narrow for values with a unit word ("2,42 mio.").
 - Map chunk is still 554 KB gzip. Next step: replace `H3HexagonLayer` (`@deck.gl/geo-layers`) with a `SolidPolygonLayer` of precomputed hex rings, then measure Lighthouse mobile on real hardware.
 - No screen-reader pass with VoiceOver or NVDA yet; dialogs are `aria-modal` but have no full focus trap.
-- The self-hosted fonts in `site/public/fonts` (since pass 3: Source Sans 3, Source Serif 4, IBM Plex Mono; SIL Open Font License per their upstream projects, to be confirmed) ship without their licence files. The OFL asks for the licence to travel with the font files, so copy each upstream `OFL.txt` next to the WOFF2 files before launch. Not done here because no local copy of the licence texts was available and I did not want to write them from memory.
+- The self-hosted fonts in `site/public/fonts` (since pass 3: Source Sans 3, Source Serif 4, IBM Plex Mono; SIL Open Font License per their upstream projects, to be confirmed) ship without their licence files. The OFL asks for the licence to travel with the font files, so copy each upstream `OFL.txt` next to the WOFF2 files before launch. Not done here because no local copy of the licence texts was available and I did not want to write them from memory. Done in pass 5: the upstream licence files were fetched with curl and copied unchanged (`site/public/fonts/OFL-*.txt`, sources in `site/public/fonts/README.txt`).
 - Fornyelsesradar price re-checked live on 2026-11-26 in pass 3: 99 kr/år inkl. moms. Re-check again before launch.
 
 ## What is missing

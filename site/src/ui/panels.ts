@@ -164,5 +164,14 @@ export function showSources(): void {
       </dl></div>`,
     )
     .join("");
-  openPanel(`<h2 id="s-title">${esc(c.title)}</h2><p>${esc(c.intro)}</p><p><a href="${import.meta.env.BASE_URL}data/sources.json" target="_blank" rel="noopener">sources.json</a></p>${items}`, "s-title");
+  const base = import.meta.env.BASE_URL;
+  const fonts = [
+    ["Source Sans 3", "Adobe", "OFL-source-sans-3.txt"],
+    ["Source Serif 4", "Adobe", "OFL-source-serif-4.txt"],
+    ["IBM Plex Mono", "IBM", "OFL-ibm-plex-mono.txt"],
+  ]
+    .map(([n, by, file]) => `<li>${esc(n)} (${esc(by)}), <a href="${base}fonts/${file}" target="_blank" rel="noopener">SIL OFL 1.1</a></li>`)
+    .join("");
+  const fontBlock = `<h3>${esc(c.fontsTitle)}</h3><p>${esc(c.fontsIntro)}</p><ul>${fonts}</ul>`;
+  openPanel(`<h2 id="s-title">${esc(c.title)}</h2><p>${esc(c.intro)}</p><p><a href="${base}data/sources.json" target="_blank" rel="noopener">sources.json</a></p>${items}${fontBlock}`, "s-title");
 }
