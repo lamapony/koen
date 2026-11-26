@@ -2,6 +2,37 @@
 
 Status: runs locally. Nothing is deployed, pushed or published. No analytics, no email capture, no cookies.
 
+## Pass 5: pre-launch hardening (2026-11-26, late night)
+
+Commits on `build/v1`, nothing pushed, merged or deployed. Owner decisions taken as given: clamp stays at ±2.5 (no fitting); P1 stays as is, and the independent reviewer's P1 idea (divide by national instead of local income) is now a Future work item in `docs/METHOD.md`.
+
+### Codex review (`../orch3/codex-review.md`)
+
+Eight must-fix and five should-fix items, all checked against the code, none rejected. Item by item in `docs/review/codex-pr1-review.md`. In short: the leave-one-anchor-out check no longer counts the held-out kommune as a negative (rerun, same result: ranks 2 / 2 / 4); the method panel attributes the "three longest queues" statement to the people behind Ventelistevalg and calls catalog coverage coverage; Aarhusbolig's `observedAt` (an assumed date) is now `fileModifiedAt`, read from CKAN; malformed permalinks and all-zero weights fall back to defaults; the skip link opens and focuses the table; dialogs trap focus; Explorer tabs have arrow keys and keep focus; `make refresh` refetches Nominatim with its log; a licence without URL is plain text; "measures how many people queue" is now "modelled relative pressure, does not count people" in METHOD.md and the panel. CI runs Python tests, Vitest and the smoke test (dev and production build). Deferred: `tests/recompute_validation.py` in CI (needs the gitignored `data/raw`).
+
+### Fonts
+
+Source Sans 3, Source Serif 4 (Adobe) and IBM Plex Mono (IBM) are SIL OFL 1.1. The upstream licence files were fetched with curl (HTTP 200) from the Adobe and IBM repos and copied unchanged to `site/public/fonts/OFL-*.txt`; `site/public/fonts/README.txt` lists the sources. Credited in the Kilder panel (new "Skrifttyper" block) and README.
+
+### Bundle (gzip, `npm run build`)
+
+| Chunk | Before | After |
+| --- | --- | --- |
+| Entry (`index-*.js`), blocks start | 93.3 KB (app + h3-js) | 18.6 KB + 0.9 KB preload helper |
+| Map path | `map-*.js` 553.9 KB + webgl 6.6 KB | `vendor-maplibre` 273.4, `vendor-deck` 280.0, `vendor-h3` 63.7, `map` 5.7, `geometry` 0.6 KB |
+| Loaded on first use | none | `explorer` 5.1, `panels` 4.8, `tour` 1.9 KB |
+| CSS | 6.9 KB + map CSS 10.1 KB (with the map chunk) | unchanged |
+
+JS needed for the first map: about 654 KB before, 643 KB after. The total barely moves, because MapLibre is a prebuilt UMD bundle (273 KB) that cannot be tree-shaken, and deck.gl was already imported per package (only the layers in use; `@deck.gl/geo-layers` shrinks to 7 KB raw because only `H3HexagonLayer` is used, so it stays). What changed is the order: the entry is 5x smaller, and h3-js, MapLibre and deck.gl now download in parallel with the data instead of h3-js before it. The largest single chunk went from 554 to 280 KB. Vendor chunks are stable across app releases. Explorer, method and sources panels and the tour load on first use. `npm run test:smoke:dist` runs the smoke test against the production build.
+
+### Lighthouse
+
+Full table in `docs/review/lighthouse.md`. Accessibility 98 to 100 (desktop) and 92 to 100 (mobile), SEO 91 to 100 on both, best practices 100. Fixed: skip-link target, language button name, Explorer button name on mobile, heading order on mobile, `robots.txt`. Performance stays at 42 to 44 (desktop) and 35 (mobile): the main thread is almost all WebGL work in MapLibre and deck.gl on SwiftShader (a software GPU), so the number mostly measures the test machine. Runner: `site/scripts/lighthouse.mjs`.
+
+### Checks
+
+`npm run build`, `npm test` (9 Python + 6 Vitest), `npm run test:smoke`, `npm run test:smoke:dist`, `make check` (0 failures) and `tests/recompute_validation.py` pass at the end of this pass. Screenshots not retaken: nothing visible changed (the new names and the heading are for screen readers, the Kilder panel gained a fonts block at the bottom).
+
 ## Pass 4: final pass, review fixes and design quick wins (2026-11-26, night)
 
 Commits on `build/v1`, nothing pushed, merged or deployed.
@@ -39,8 +70,8 @@ Commits on `build/v1`, nothing pushed, merged or deployed.
 ### What is left
 
 - Clamp: ±2.5 kept. With 4.0 København is no. 1, with no clamp København, Frederiksberg, Brøndby are 1 to 3 (top 10 unchanged in every case). Changing it is an owner call, see below.
-- Fonts: OFL licence files still missing next to the WOFF2 files. (Done in pass 5, see below.)
-- Map chunk 554 KB gzip; Lighthouse and screen-reader passes not done; no full focus trap in dialogs.
+- Fonts: OFL licence files still missing next to the WOFF2 files. (Done in pass 5, see above.)
+- Map chunk 554 KB gzip; Lighthouse and screen-reader passes not done; no full focus trap in dialogs. (Pass 5: chunks split, Lighthouse done, focus trap added; a screen-reader pass is still not done.)
 - DAGI boundaries, LBF data (needs permission), Eurostat population mask, press kit.
 - Fornyelsesradar price (99 kr/år) to re-check right before launch.
 
@@ -207,7 +238,7 @@ Applied:
 - deck.gl TextLayer label backgrounds are slightly narrow for values with a unit word ("2,42 mio.").
 - Map chunk is still 554 KB gzip. Next step: replace `H3HexagonLayer` (`@deck.gl/geo-layers`) with a `SolidPolygonLayer` of precomputed hex rings, then measure Lighthouse mobile on real hardware.
 - No screen-reader pass with VoiceOver or NVDA yet; dialogs are `aria-modal` but have no full focus trap.
-- The self-hosted fonts in `site/public/fonts` (since pass 3: Source Sans 3, Source Serif 4, IBM Plex Mono; SIL Open Font License per their upstream projects, to be confirmed) ship without their licence files. The OFL asks for the licence to travel with the font files, so copy each upstream `OFL.txt` next to the WOFF2 files before launch. Not done here because no local copy of the licence texts was available and I did not want to write them from memory. Done in pass 5: the upstream licence files were fetched with curl and copied unchanged (`site/public/fonts/OFL-*.txt`, sources in `site/public/fonts/README.txt`).
+- The self-hosted fonts in `site/public/fonts` (since pass 3: Source Sans 3, Source Serif 4, IBM Plex Mono; SIL Open Font License per their upstream projects, to be confirmed) ship without their licence files. The OFL asks for the licence to travel with the font files, so copy each upstream `OFL.txt` next to the WOFF2 files before launch. Not done here because no local copy of the licence texts was available and I did not want to write them from memory. Done in pass 5 (see the top of this file): the upstream licence files were fetched with curl and copied unchanged (`site/public/fonts/OFL-*.txt`, sources in `site/public/fonts/README.txt`).
 - Fornyelsesradar price re-checked live on 2026-11-26 in pass 3: 99 kr/år inkl. moms. Re-check again before launch.
 
 ## What is missing
