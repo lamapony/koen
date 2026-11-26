@@ -1,4 +1,4 @@
-// App state with permalink sync: #mode=koetryk&k=0101&x=D1&y=P1&w=25,15,10,15,15,10,10&e=table&l=en
+// App state with permalink sync: #mode=koetryk&k=0101&x=B1&y=P2&w=30,20,10,10,10,10,10&e=table&l=en
 export interface State {
   mode: string;
   alt: boolean;
@@ -32,13 +32,13 @@ export function initState(ids: string[], weights: Record<string, number>): State
     k: null,
     hover: null,
     brushed: new Set(),
-    x: "D1",
-    y: "P1",
+    x: "B1",
+    y: "P2",
     w: { ...defaultW },
     explorer: "",
     lang: "da",
     theme: matchMedia("(prefers-color-scheme: dark)").matches ? "night" : "day",
-    cols: ["D1", "P1", "D2", "S1"],
+    cols: ["B1", "P2", "D4", "D2"],
     sort: ["koetryk", -1],
     cam: "",
   };
@@ -109,7 +109,7 @@ export function permalink(): string {
   p.set("mode", state.mode);
   if (state.alt) p.set("alt", "1");
   if (state.k) p.set("k", state.k);
-  if (state.x !== "D1" || state.y !== "P1" || state.explorer === "scatter") {
+  if (state.x !== "B1" || state.y !== "P2" || state.explorer === "scatter") {
     p.set("x", state.x);
     p.set("y", state.y);
   }
