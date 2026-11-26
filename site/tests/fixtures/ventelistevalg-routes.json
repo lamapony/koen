@@ -1,0 +1,9 @@
+{
+  "source": "../andelplan/src/app page routes and src/lib/public-sitemap.ts district entries, checked 2026-11-26",
+  "paths": [
+    "/", "/datakilder", "/fornyelsesradar", "/vejledning", "/lister/almene", "/lister/andels",
+    "/lister/andels/bydel/indre-by", "/lister/andels/bydel/noerrebro", "/lister/andels/bydel/oesterbro",
+    "/lister/andels/bydel/vesterbro", "/lister/andels/bydel/amager", "/lister/andels/bydel/valby",
+    "/lister/andels/bydel/vanloese", "/lister/andels/bydel/nordvest", "/lister/andels/bydel/frederiksberg"
+  ]
+}

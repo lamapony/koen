@@ -1,0 +1,31 @@
+{
+  "name": "koen-site",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "shots": "node scripts/shots.mjs scripts/shots.json",
+    "test": "vitest run",
+    "test:smoke": "node tests/smoke.mjs",
+    "test:smoke:dist": "SMOKE_DIST=1 node tests/smoke.mjs"
+  },
+  "dependencies": {
+    "@deck.gl/core": "^9.4.2",
+    "@deck.gl/extensions": "^9.4.2",
+    "@deck.gl/geo-layers": "^9.4.2",
+    "@deck.gl/layers": "^9.4.2",
+    "@deck.gl/mapbox": "^9.4.2",
+    "h3-js": "^4.5.0",
+    "maplibre-gl": "^5.24.1"
+  },
+  "devDependencies": {
+    "@types/geojson": "^7946.0.16",
+    "playwright": "^1.65.1",
+    "typescript": "^7.0.2",
+    "vite": "^8.4.0",
+    "vitest": "^5.1.2"
+  }
+}

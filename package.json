@@ -1,0 +1,9 @@
+{
+  "name": "koen-workspace",
+  "private": true,
+  "scripts": {
+    "build": "npm --prefix site run build",
+    "test": "UV_CACHE_DIR=${UV_CACHE_DIR:-/tmp/koen-uv-cache} uv run --offline python -m unittest discover -s tests && npm --prefix site test",
+    "test:smoke": "npm --prefix site run test:smoke"
+  }
+}

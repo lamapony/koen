@@ -1,0 +1,10 @@
+# Raw downloads are a local cache (re-create with `make data`)
+data/raw/
+.venv/
+.scratch/
+__pycache__/
+node_modules/
+site/dist/
+.DS_Store
+.env
+.env.*

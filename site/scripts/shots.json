@@ -1,0 +1,65 @@
+[
+  {
+    "out": "../docs/shots/01-country-koetryk.png",
+    "hash": ""
+  },
+  {
+    "out": "../docs/shots/02-aarhus-rigtige-koeer-2017.png",
+    "hash": "mode=maalt&c=10.1500,56.1800,9.50,50,-10"
+  },
+  {
+    "out": "../docs/shots/03-copenhagen-almene-afdelinger.png",
+    "hash": "mode=almen&c=12.5500,55.6800,11.60,45,-15"
+  },
+  {
+    "out": "../docs/shots/04-explorer-scatter-brushed.png",
+    "hash": "mode=koetryk&e=scatter&b=0101,0147,0751,0461,0851,0157,0159"
+  },
+  {
+    "out": "../docs/shots/05-explorer-weights.png",
+    "hash": "mode=koetryk&e=weights&w=50,5,5,10,10,10,10"
+  },
+  {
+    "out": "../docs/shots/06-kommune-card-cta.png",
+    "hash": "mode=koetryk&k=0101"
+  },
+  {
+    "out": "../docs/shots/07-mobile-country.png",
+    "hash": "",
+    "w": 390,
+    "h": 844,
+    "dpr": 2
+  },
+  {
+    "out": "../docs/shots/08-mobile-card.png",
+    "hash": "mode=koetryk&k=0751",
+    "w": 390,
+    "h": 844,
+    "dpr": 2
+  },
+  {
+    "out": "../docs/shots/09-mode-usikkerhed.png",
+    "hash": "mode=usikkerhed&k=0167"
+  },
+  { "out": "../docs/shots/10-mode-andelsvaerdi.png", "hash": "mode=andelsvaerdi" },
+  { "out": "../docs/shots/11-nattekort-flyttestroemme.png", "hash": "mode=flyt&k=0101&t=night" },
+  { "out": "../docs/shots/12-first-visit-explainer.png", "hash": "", "intro": true },
+  { "out": "../docs/shots/13-english-table.png", "hash": "mode=koetryk&e=table&l=en" },
+  {
+    "out": "../docs/shots/14-frederiksberg-card-ventelistevalg.png",
+    "hash": "mode=koetryk&k=0147",
+    "js": "document.getElementById('card').scrollTop=99999"
+  },
+  {
+    "out": "../docs/shots/15-flere-visninger-open.png",
+    "hash": "mode=ejerIndkomst"
+  },
+  {
+    "out": "../docs/shots/16-method-validation.png",
+    "hash": "",
+    "click": [
+      "#btn-method"
+    ],
+    "js": "document.querySelector('#panel .valtab').scrollIntoView({block: 'center'})"
+  }
+]

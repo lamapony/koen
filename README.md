@@ -8,9 +8,20 @@ Køen is a free showcase made by the people behind [Ventelistevalg](https://vent
 
 ## Status
 
-Planning. Nothing is built or deployed yet. The full plan, including every dataset with its URL, licence and verification date, is in [PLAN.md](PLAN.md).
+v1 runs locally. Nothing is deployed. The plan is in [PLAN.md](PLAN.md); what was built and how it differs is in [docs/BUILD-NOTES.md](docs/BUILD-NOTES.md); the method (Køtryk v2, with validation) is in [docs/METHOD.md](docs/METHOD.md).
+
+## Run it
+
+```sh
+make data-offline      # or: make data (fetches what is not cached)
+make check
+cd site && npm install && npm run dev
+```
+
+The pipeline needs [uv](https://docs.astral.sh/uv/) and Python 3.12. All processed data the site needs is committed in `site/public/data/`, with `sources.json` listing source, licence, period and fetch date for every dataset.
 
 ## Licence
 
 - Code: [MIT](LICENSE).
+- Fonts: Source Sans 3 and Source Serif 4 (Adobe) and IBM Plex Mono (IBM), self-hosted in `site/public/fonts/`, all under the SIL Open Font License 1.1. The upstream licence files sit next to the WOFF2 files (`OFL-*.txt`, see `site/public/fonts/README.txt`).
 - Data: each source keeps its own licence (for example CC BY 4.0 for Danmarks Statistik and opendata.dk datasets, ODbL for OpenStreetMap). See the source tables in [PLAN.md](PLAN.md) for the full list and required attribution.

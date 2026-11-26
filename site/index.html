@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="da">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Køen · Danmarks boligkøer som landskab</title>
+    <meta name="description" content="Et åbent kort over presset på Danmarks boligkøer. Modelleret køtryk for alle 98 kommuner ud fra åbne data, og rigtige ventelister der hvor de findes." />
+    <meta name="theme-color" content="#F2EDE3" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#10151A" media="(prefers-color-scheme: dark)" />
+    <meta property="og:title" content="Køen · Danmarks boligkøer som landskab" />
+    <meta property="og:description" content="Jo højere bjerget, jo større presset på ventelisterne. Modelleret ud fra åbne data." />
+    <meta property="og:type" content="website" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23F2EDE3'/%3E%3Cpath d='M4 25 L10 15 L14 20 L19 9 L28 25 Z' fill='%23863A35'/%3E%3Cpath d='M4 25 H28' stroke='%231E242B' stroke-width='1.5'/%3E%3C/svg%3E" />
+    <link rel="preload" href="./fonts/source-sans-3-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="./fonts/source-serif-4-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin />
+  </head>
+  <body>
+    <a class="skip" href="#explorer" id="skip-link">Spring til tabellen over kommuner</a>
+    <div id="app" class="app" data-loading="true">
+      <div id="map" class="map" role="region" aria-label="Kort over Danmark med modelleret køtryk. Tabellen under Udforsk indeholder de samme tal."></div>
+      <div id="inset" class="inset" role="button" tabindex="0" aria-label="Bornholm"><span class="inset-label">BORNHOLM</span></div>
+      <div class="sheet" id="sheet">
+        <header class="masthead" id="masthead"></header>
+        <nav class="modes" id="modes" aria-label="Visninger"></nav>
+        <aside class="legend" id="legend" aria-live="off"></aside>
+      </div>
+      <div class="tools" id="tools" role="toolbar"></div>
+      <aside class="card" id="card" hidden></aside>
+      <section class="explorer" id="explorer" hidden></section>
+      <div class="tooltip" id="tooltip" role="presentation" hidden></div>
+      <div class="intro" id="intro" hidden></div>
+      <div class="panel" id="panel" hidden></div>
+      <div class="tour" id="tour" hidden></div>
+      <div class="toast" id="toast" role="status" aria-live="polite"></div>
+      <div class="loading" id="loading"><span class="loading-mark"></span><span id="loading-text">Henter åbne data</span></div>
+      <footer class="foot" id="foot"></footer>
+    </div>
+    <div class="sr-only" id="live" aria-live="polite" aria-atomic="true"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
