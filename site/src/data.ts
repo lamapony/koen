@@ -23,7 +23,7 @@ export interface MeasuredQueue {
   sourceUrl: string;
   observedAt: string;
   lists: number;
-  peopleOnLists: number;
+  signups: number; // sign-ups across lists, not unique people
   maxList: number;
   postnumre: string[];
 }

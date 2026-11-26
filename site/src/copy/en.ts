@@ -39,7 +39,7 @@ export const en: Copy = {
   intro: {
     title: "What do the mountains mean?",
     body: [
-      "Each hexagon is a small piece of Denmark. Its height shows a modelled queue pressure for the kommune: how many social and co-op dwellings with a waiting list there are per adult, how many young people and new arrivals look for a home, and how expensive it is to buy your way out of the queue. Empty dwellings lower it.",
+      "Each hexagon is a small piece of Denmark. Its height shows a modelled queue pressure for the kommune: how many social and co-op dwellings there are per adult (they usually have a waiting list), how many young people and immigrants look for a home, how fast the population grows, and what co-op and owner-occupied flats are worth against income. Empty dwellings lower it.",
       "The mountains are not counts of people in line. Most Danish waiting lists are not public. Where real numbers exist, we show them in blue with source and year.",
     ],
     cta: "Show the map",

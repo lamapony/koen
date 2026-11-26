@@ -139,6 +139,27 @@ def main() -> int:
         for c in OWNER3:
             top_hits[c] += rr[c] <= TOP_N
 
+    # Sensitivity, reported and not used to pick anything (from the independent cross-check, docs/METHOD.md).
+    def top10(raw):
+        r = ranks(raw, codes)
+        return {c for c in codes if r[c] <= 10}
+
+    base_top = top10(raw_v2)
+    loo_top10 = {}
+    for k in W:
+        r2 = ix.combine(zcols, {j: w for j, w in W.items() if j != k}, len(codes))
+        loo_top10[k] = len(base_top & top10(r2))
+    clamp_sens = {}
+    saved = ix.CLAMP
+    for cl in (3.5, 4.0, 1e9):
+        ix.CLAMP = cl
+        r2 = score(values, codes, v2)
+        rk = ranks(r2, codes)
+        clamp_sens["none" if cl > 100 else str(cl)] = {
+            "rho": round(ix.spearman(raw_v2, r2), 4), "top10Overlap": len(base_top & top10(r2)),
+            "top1": names[min(codes, key=lambda c: rk[c])], "ranks": {c: rk[c] for c in OWNER3}}
+    ix.CLAMP = saved
+
     kk = json.loads((SITE_DATA / "measured.json").read_text("utf-8")).get("kk") or {}
     c_dst = json.loads((RAW / "clean" / "dst.json").read_text("utf-8"))["tables"]
     bolp = sorted(c_dst["bol101_bebo1000_ejer20"]["0101"])[-1]
@@ -162,6 +183,8 @@ def main() -> int:
         "family": family,
         "weightDrawsTop15": {c: round(top_hits[c] / draws, 3) for c in OWNER3},
         "topN": TOP_N,
+        "looTop10Overlap": loo_top10,
+        "clampSensitivity": clamp_sens,
     }
     write_json(RAW / "clean" / "validation.json", out, compact=False)
 
@@ -175,6 +198,8 @@ def main() -> int:
     for x in loao:
         print(f"leave-one-anchor-out: hold {x['navn']:<14} chose {x['chosen']:<18} rank {x['heldOutRank']}")
     print("weight draws, share in top 15:", {names[c]: v for c, v in out["weightDrawsTop15"].items()})
+    print("leave-one-indicator-out, top-10 overlap:", loo_top10)
+    print("clamp sensitivity:", clamp_sens)
     print(f"KK almene check: {kk.get('dwellings')} vs BOL101 {almen_kbh:.0f} ({bolp})")
     return 0
 

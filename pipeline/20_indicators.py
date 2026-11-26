@@ -13,6 +13,7 @@ import sys
 from common import RAW
 
 DST_TABLE_URL = "https://www.statistikbanken.dk/"
+MIN_EJD = 50  # minimum EJDFOE1 holdings behind an average value before it enters P1 or P2
 
 
 def latest(d: dict) -> str:
@@ -74,6 +75,9 @@ def main() -> int:
         andel_val = g("ejdfoe1_andel_gns", k, ejd_per)
         if not andel_n_ejd or not andel_val:
             andel_val = None
+        # An average over a handful of holdings is noise (Ærø: 8 andelsboliger). P1/P2 need MIN_EJD holdings;
+        # the value lenses keep the raw average.
+        p1_val = andel_val if andel_n_ejd and andel_n_ejd >= MIN_EJD else None
         income = g("indkp106_gns", k, ind_per)
         comp = [g("bygv33_fuldfoert", k, p) for p in byg_periods]
         comp_sum = None if any(x is None for x in comp) else sum(comp)
@@ -88,6 +92,7 @@ def main() -> int:
         ejl_val = g("ejdfoe1_ejerlejl_gns", k, ejl_per)
         if not ejl_n or not ejl_val:
             ejl_val = None
+        p2_val = ejl_val if ejl_n and ejl_n >= MIN_EJD else None
         values[k] = {
             "B1": div(aa, adults, 100),
             "D1": div(adults, aa),
@@ -95,8 +100,8 @@ def main() -> int:
             "D3": None if p26 is None or not p36 else (p36 / p26 - 1) * 100,
             "D4": div(young, pop, 100),
             "D5": div(imm_avg, pop, 1000),
-            "P1": div(andel_val, income),
-            "P2": div(ejl_val, income),
+            "P1": div(p1_val, income),
+            "P2": div(p2_val, income),
             "S1": div(comp_sum, pop, 1000),
             "S2": None if occ is None or unocc is None else unocc / (occ + unocc) * 100,
             # Extra lenses (not in the index)
@@ -136,16 +141,16 @@ def main() -> int:
          "formula_da": f"Befolkning {folk_per} mod {folk_back} (FOLK1A).", "formula_en": f"Population {folk_per} vs {folk_back} (FOLK1A)."},
         {"id": "P1", "da": "Andelsværdi mod indkomst", "en": "Co-op value to income", "unit": "x", "dec": 1,
          "dir": 1, "w": 0.10, "kind": "derived", "tables": ["EJDFOE1", "INDKP106"], "period": f"{ejd_per} / {ind_per}",
-         "formula_da": "Gennemsnitlig markedsværdi af andelsboliger ejet af kommunens beboere (EJDFOE1) delt med gennemsnitlig disponibel indkomst (INDKP106). En formuestatistik, ikke en salgspris.",
-         "formula_en": "Average market value of co-op dwellings held by residents (EJDFOE1) divided by average disposable income (INDKP106). A wealth statistic, not a sales price."},
+         "formula_da": "Gennemsnitlig markedsværdi af andelsboliger ejet af kommunens beboere (EJDFOE1) delt med gennemsnitlig disponibel indkomst (INDKP106). Kun kommuner med mindst 50 andelsboliger i opgørelsen. En formuestatistik, ikke en salgspris.",
+         "formula_en": "Average market value of co-op dwellings held by residents (EJDFOE1) divided by average disposable income (INDKP106). Only kommuner with at least 50 co-op holdings in the count. A wealth statistic, not a sales price."},
         {"id": "P2", "da": "Ejerlejlighedsværdi mod indkomst", "en": "Flat value to income", "unit": "x", "dec": 1,
          "dir": 1, "w": 0.10, "kind": "derived", "tables": ["EJDFOE1", "INDKP106"], "period": f"{ejl_per} / {ind_per}",
-         "formula_da": "Gennemsnitlig markedsværdi af ejerlejligheder ejet af kommunens beboere (EJDFOE1) delt med gennemsnitlig disponibel indkomst (INDKP106). Dyre ejerlejligheder skubber flere over i køerne. En formuestatistik, ikke en salgspris.",
-         "formula_en": "Average market value of owner-occupied flats held by residents (EJDFOE1) divided by average disposable income (INDKP106). Expensive flats push more people into the queues. A wealth statistic, not a sales price."},
+         "formula_da": "Gennemsnitlig markedsværdi af ejerlejligheder ejet af kommunens beboere (EJDFOE1) delt med gennemsnitlig disponibel indkomst (INDKP106). Dyre ejerlejligheder skubber flere over i køerne. Kun kommuner med mindst 50 ejerlejligheder i opgørelsen. En formuestatistik, ikke en salgspris.",
+         "formula_en": "Average market value of owner-occupied flats held by residents (EJDFOE1) divided by average disposable income (INDKP106). Expensive flats push more people into the queues. Only kommuner with at least 50 flats in the count. A wealth statistic, not a sales price."},
         {"id": "S2", "da": "Tomme boliger", "en": "Empty dwellings", "unit": "%", "dec": 1,
          "dir": -1, "w": 0.10, "kind": "measured", "tables": ["BOL101"], "period": bol_per,
-         "formula_da": "Boliger uden CPR-tilmeldte personer som andel af alle boliger, ekskl. fritidshuse (BOL101). Flere tomme boliger trækker køtrykket ned.",
-         "formula_en": "Dwellings with no registered residents as a share of all dwellings, excluding holiday homes (BOL101). More empty dwellings lower the pressure."},
+         "formula_da": "Boliger uden CPR-tilmeldte personer som andel af alle boliger (BOL101). Ubeboede fritidshuse er en egen gruppe i BOL101 og tæller ikke med; beboede fritidshuse er med i nævneren. Andelen er høj på ferieøerne, så den er ikke kun ledige boliger til salg eller leje. Flere tomme boliger trækker køtrykket ned.",
+         "formula_en": "Dwellings with no registered residents as a share of all dwellings (BOL101). Empty holiday homes are a separate group in BOL101 and are left out; occupied holiday homes are in the denominator. The share is high on holiday islands, so it is not only homes for sale or rent. More empty dwellings lower the pressure."},
         # Lenses that were in the v1 index (kept for the map and the explorer, no longer weighted).
         {"id": "D1", "da": "Voksne pr. almen- eller andelsbolig", "en": "Adults per social or co-op dwelling", "unit": "voksne", "dec": 1,
          "kind": "derived", "tables": ["FOLK1A", "BOL101"], "period": f"{folk_per} / {bol_per}",

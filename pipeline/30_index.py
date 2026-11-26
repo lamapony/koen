@@ -5,7 +5,7 @@ z_i = clamp((x_i - median_i) / (1.4826 * MAD_i), -2.5, 2.5), sign-flipped where 
 raw = sum(w_i * z_i) over non-null indicators, weights renormalised
 koetryk = percentile rank of raw in [0, 1]
 Uncertainty band: min..max percentile across 200 Dirichlet weight draws around the defaults (seeded).
-Leave-one-out: Spearman(full, index without indicator i) must be >= 0.8 for every i, else exit 1.
+Leave-one-out: Spearman(full, index without indicator i) must be >= 0.85 for every i, else exit 1.
 
 Output: data/raw/clean/index.json
 """
@@ -22,7 +22,7 @@ from common import RAW
 CLAMP = 2.5
 N_DRAWS = 200
 DIRICHLET_CONCENTRATION = 20.0
-LOO_MIN = 0.8
+LOO_MIN = 0.85  # raised from 0.8 after the independent cross-check (docs/METHOD.md)
 SEED = 20261126
 
 

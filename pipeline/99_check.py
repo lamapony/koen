@@ -52,6 +52,9 @@ def main() -> int:
         check(a["owner3"]["auc"] >= max(0.9, b["owner3"]["auc"]), f"Køtryk v2 owner3 AUC {a['owner3']['auc']} >= 0.9 and >= v1 {b['owner3']['auc']}")
         check(a["ventelistevalg"]["auc"] >= 0.9, f"Køtryk v2 Ventelistevalg AUC {a['ventelistevalg']['auc']} >= 0.9")
         check(a["aarhusbolig"]["rho"] >= b["aarhusbolig"]["rho"], f"Aarhusbolig rho v2 {a['aarhusbolig']['rho']} >= v1 {b['aarhusbolig']['rho']}")
+        # Full-98 Spearman misses top-tail changes, so the top 10 must also hold when any one indicator is dropped.
+        t10 = v.get("looTop10Overlap") or {}
+        check(bool(t10) and min(t10.values()) >= 7, f"leave-one-out top-10 overlap min {min(t10.values()) if t10 else None} >= 7")
 
     for res in (7, 6):
         b = (SITE_DATA / f"hex{res}.bin").read_bytes()

@@ -138,7 +138,7 @@
       "id": "dst-ejdfoe1-andel",
       "kind": "statistics",
       "publisher": "Danmarks Statistik",
-      "title": "EJDFOE1 Formue i fast ejendom (andelsboliger og ejerlejligheder, markedsværdi)",
+      "title": "EJDFOE1 Formue i fast ejendom (andelsboliger, markedsværdi)",
       "url": "https://www.statistikbanken.dk/EJDFOE1",
       "api": "https://api.statbank.dk/v1/data",
       "licence": {
@@ -157,7 +157,7 @@
       "id": "dst-ejdfoe1-ejerlejl",
       "kind": "statistics",
       "publisher": "Danmarks Statistik",
-      "title": "EJDFOE1 Formue i fast ejendom (andelsboliger og ejerlejligheder, markedsværdi)",
+      "title": "EJDFOE1 Formue i fast ejendom (ejerlejligheder, markedsværdi)",
       "url": "https://www.statistikbanken.dk/EJDFOE1",
       "api": "https://api.statbank.dk/v1/data",
       "licence": {
@@ -355,7 +355,7 @@
         "url": "https://creativecommons.org/licenses/by/4.0/"
       },
       "attribution": "Kilde: Københavns Kommune, Open Data DK (CC BY 4.0).",
-      "period": "ikke angivet i datasættet",
+      "period": "ikke angivet i datasættet (ressourcen på Open Data DK sidst ændret 2015-12-08; data hentes fra KK's WFS)",
       "rows": 507
     },
     {

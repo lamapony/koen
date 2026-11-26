@@ -48,13 +48,13 @@ def main() -> int:
             pts = maalt[c]
             row["maalt"] = [{
                 "source": a["source"], "sourceUrl": a["sourceUrl"], "observedAt": a["observedAt"],
-                "lists": sum(p["lists"] for p in pts), "peopleOnLists": sum(p["signups"] for p in pts),
+                "lists": sum(p["lists"] for p in pts), "signups": sum(p["signups"] for p in pts),
                 "maxList": max(p["maxList"] for p in pts), "postnumre": [p["postnummer"] for p in pts],
             }]
         kommuner.append(row)
 
     val = json.loads((RAW / "clean" / "validation.json").read_text("utf-8"))
-    validation = {k: val[k] for k in ("before", "after", "leaveOneAnchorOut", "weightDrawsTop15", "topN", "maxOwner3Rho")}
+    validation = {k: val[k] for k in ("before", "after", "leaveOneAnchorOut", "weightDrawsTop15", "topN", "maxOwner3Rho", "looTop10Overlap", "clampSensitivity")}
     meta = {
         "indicators": ind["meta"],
         "index": {"ids": ix["ids"], "weights": ix["weights"], "loo": ix["loo"], "params": ix["params"],

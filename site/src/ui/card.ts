@@ -50,7 +50,7 @@ export function renderCard(): void {
     ? `<div class="measured-box">
         <div class="lead">${esc(c.card.measuredLongest(num(ma.maxList)))}</div>
         <div class="meta">${esc(c.card.measuredMeta)}</div>
-        <p>${esc(c.card.measuredTotals(num(ma.lists), num(ma.peopleOnLists)))}</p>
+        <p>${esc(c.card.measuredTotals(num(ma.lists), num(ma.signups)))}</p>
         <p>${esc(c.card.measuredPostnumre(ma.postnumre.join(", ")))} · <a href="${esc(ma.sourceUrl)}" target="_blank" rel="noopener">Open Data DK</a>, CC BY 4.0</p>
       </div>`
     : `<p class="measured-none">${esc(c.card.noMeasured)}</p>`;

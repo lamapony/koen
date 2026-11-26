@@ -57,7 +57,9 @@ def aarhus() -> dict:
         p["signups"] += n
         p["maxList"] = max(p["maxList"], n)
         p["afdelinger"].add(r["AfdId"])
-        p["by"] = a["Postby"][4:].strip()
+        # Some rows carry only the postnummer ("8520"); keep the first town name seen, never overwrite it with "".
+        if not p.get("by"):
+            p["by"] = a["Postby"][4:].strip()
         d = by_afd.setdefault(r["AfdId"], {"navn": a["Navn"], "selskab": sel.get(a["SelId"], ""), "postnummer": pn, "lists": 0, "maxList": 0, "maxType": ""})
         d["lists"] += 1
         if n > d["maxList"]:

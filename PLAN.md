@@ -127,7 +127,7 @@ type MeasuredQueue = {
   observedAt: string;      // ISO date of the source snapshot
   postnummer?: string;
   lists: number;           // count of lists in this aggregate
-  peopleOnLists?: number;  // only if the source publishes it (Aarhusbolig does)
+  signups?: number;  // sign-ups across lists, not unique people; only if the source publishes it (Aarhusbolig does)
   openShare?: number;      // only if the source publishes signup status
 };
 

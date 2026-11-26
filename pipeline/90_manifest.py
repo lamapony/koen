@@ -23,6 +23,23 @@ DST_TEXT = {
     "FLY66": "Flytninger mellem kommuner",
     "BOL106": "Boligareal og beboere pr. bolig",
 }
+# Titles per query where one table feeds two different indicators.
+QUERY_TEXT = {
+    ("EJDFOE1", "andel"): "Formue i fast ejendom (andelsboliger, markedsværdi)",
+    ("EJDFOE1", "ejerlejl"): "Formue i fast ejendom (ejerlejligheder, markedsværdi)",
+}
+
+
+def kk_period() -> str:
+    """The KK dataset has no period field. Report the CKAN resource date so readers can judge its age."""
+    base = "ikke angivet i datasættet"
+    p = RAW / "kk" / "package.json"
+    if not p.exists():
+        return base
+    pkg = json.loads(p.read_text("utf-8"))
+    pkg = pkg.get("result", pkg)
+    lm = next((r.get("last_modified") for r in pkg.get("resources", []) if r.get("name") == "almene_boliger_kk.geojson"), None)
+    return f"{base} (ressourcen på Open Data DK sidst ændret {lm[:10]}; data hentes fra KK's WFS)" if lm else base
 
 
 def tid_values(body: dict) -> list[str]:
@@ -47,7 +64,7 @@ def main() -> int:
             "id": f"dst-{table.lower()}-{query}",
             "kind": "statistics",
             "publisher": "Danmarks Statistik",
-            "title": f"{table} {DST_TEXT.get(table, info.get('text', ''))}",
+            "title": f"{table} {QUERY_TEXT.get((table, query)) or DST_TEXT.get(table, info.get('text', ''))}",
             "url": f"https://www.statistikbanken.dk/{table}",
             "api": e["url"],
             "licence": DST_LICENCE,
@@ -89,7 +106,8 @@ def main() -> int:
         out.append(entry("kk-almene-boliger", "kk/almene_boliger_kk.geojson", kind="supply",
                          publisher="Københavns Kommune via Open Data DK", title="Almene boligforeninger (afdelinger)",
                          url=m["kk"]["sourceUrl"], licence={"name": "CC BY 4.0", "url": "https://creativecommons.org/licenses/by/4.0/"},
-                         attribution="Kilde: Københavns Kommune, Open Data DK (CC BY 4.0).", period="ikke angivet i datasættet",
+                         attribution="Kilde: Københavns Kommune, Open Data DK (CC BY 4.0).",
+                         period=kk_period(),
                          rows=m["kk"]["features"]))
     else:
         out.append({"id": "kk-almene-boliger", "status": "missing", "title": "Almene boligforeninger (afdelinger)",

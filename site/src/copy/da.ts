@@ -40,7 +40,7 @@ export const da = {
   intro: {
     title: "Hvad betyder bjergene?",
     body: [
-      "Hver sekskant er et lille stykke Danmark. Højden viser et modelleret køtryk for kommunen: hvor mange almen- og andelsboliger med venteliste der er pr. voksen, hvor mange unge og nye tilflyttere der søger bolig, og hvor dyrt det er at købe sig ud af køen. Tomme boliger trækker ned.",
+      "Hver sekskant er et lille stykke Danmark. Højden viser et modelleret køtryk for kommunen: hvor mange almen- og andelsboliger der er pr. voksen (de har typisk venteliste), hvor mange unge og indvandrede der søger bolig, hvor meget befolkningen vokser, og hvad andels- og ejerlejligheder er værd i forhold til indkomsten. Tomme boliger trækker ned.",
       "Bjergene er ikke antal personer i kø. De fleste ventelister i Danmark er ikke offentlige. Hvor der findes rigtige tal, viser vi dem med blåt og med kilde og år.",
     ],
     cta: "Vis kortet",
