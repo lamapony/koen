@@ -29,6 +29,10 @@ QUERIES: list[dict] = [
     {"table": "BOST63", "name": "husstande", "vars": {"OMRÅDE": "ALL", "YDELSESTYPE": ["1000"], "MND": ["012"], "ENHED": ["3000"], "Tid": "LATEST:10"}},
     {"table": "FLY66", "name": "matrix", "vars": {"TILKOMMUNE": "ALL", "FRAKOMMUNE": "ALL", "Tid": "LATEST:1"}},
     {"table": "BOL106", "name": "m2", "vars": {"OMRÅDE": "ALL", "ENHED": ["GNSAP", "GNSPB"], "ANVENDELSE": ["TOT"], "Tid": "LATEST:1"}},
+    # Method v2 (demand side): moves in from other kommuner plus immigration, last 5 years. KØN is eliminated (both sexes).
+    {"table": "BEV107", "name": "flyt", "vars": {"OMRÅDE": "ALL", "BEVÆGELSE": ["B01A", "B05", "B06", "B07", "B08AA", "B09BA", "B10", "B11"], "Tid": "LATEST:5"}},
+    # Method v2 (price side): average market value of owner-occupied flats held by residents (wealth statistic).
+    {"table": "EJDFOE1", "name": "ejerlejl", "vars": {"VAERDI": ["100"], "BOPKOM": "ALL", "ENHED": ["100", "120"], "EJENTYP": ["B"], "Tid": "LATEST:1"}},
 ]
 
 

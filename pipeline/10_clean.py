@@ -84,6 +84,13 @@ def main() -> int:
         series = "ejdfoe1_andel_gns" if r["ENHED"] == "120" else "ejdfoe1_andel_antal"
         put(series, r["BOPKOM"], r["TID"], num(r["INDHOLD"]))
 
+    for r in read("EJDFOE1_ejerlejl"):
+        series = "ejdfoe1_ejerlejl_gns" if r["ENHED"] == "120" else "ejdfoe1_ejerlejl_antal"
+        put(series, r["BOPKOM"], r["TID"], num(r["INDHOLD"]))
+
+    for r in read("BEV107_flyt"):
+        put(f"bev107_{r['BEVÆGELSE'].lower()}", r["OMRÅDE"], r["TID"], num(r["INDHOLD"]))
+
     for r in read("INDKP106_gns"):
         put("indkp106_gns", r["OMRÅDE"], r["TID"], num(r["INDHOLD"]))
 

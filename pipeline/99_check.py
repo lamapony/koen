@@ -45,6 +45,14 @@ def main() -> int:
     loo = meta["index"]["loo"]
     check(min(loo.values()) >= meta["index"]["params"]["looMin"], f"leave-one-out min {min(loo.values())} >= {meta['index']['params']['looMin']}")
 
+    v = meta["index"].get("validation")
+    check(v is not None, "validation summary exported (55_validate.py)")
+    if v:
+        a, b = v["after"], v["before"]
+        check(a["owner3"]["auc"] >= max(0.9, b["owner3"]["auc"]), f"Køtryk v2 owner3 AUC {a['owner3']['auc']} >= 0.9 and >= v1 {b['owner3']['auc']}")
+        check(a["ventelistevalg"]["auc"] >= 0.9, f"Køtryk v2 Ventelistevalg AUC {a['ventelistevalg']['auc']} >= 0.9")
+        check(a["aarhusbolig"]["rho"] >= b["aarhusbolig"]["rho"], f"Aarhusbolig rho v2 {a['aarhusbolig']['rho']} >= v1 {b['aarhusbolig']['rho']}")
+
     for res in (7, 6):
         b = (SITE_DATA / f"hex{res}.bin").read_bytes()
         n, r = struct.unpack_from("<IB", b)

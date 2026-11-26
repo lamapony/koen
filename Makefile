@@ -22,6 +22,7 @@ process:
 	cd $(P) && $(PY) 30_index.py
 	cd $(P) && $(PY) 40_hexes.py
 	cd $(P) && $(PY) 50_measured.py
+	cd $(P) && $(PY) 55_validate.py
 	cd $(P) && $(PY) 60_export.py
 	cd $(P) && $(PY) 90_manifest.py
 

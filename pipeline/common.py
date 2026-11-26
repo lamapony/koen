@@ -15,8 +15,6 @@ import time
 from pathlib import Path
 from typing import Any
 
-import requests
-
 ROOT = Path(__file__).resolve().parent.parent
 RAW = ROOT / "data" / "raw"
 BUILD = ROOT / "data" / "build"
@@ -65,6 +63,8 @@ def fetch(
         return path.read_bytes()
     if OFFLINE:
         raise FileNotFoundError(f"offline and not cached: {key}")
+    import requests  # lazy, so offline steps run without it
+
     headers = {"User-Agent": USER_AGENT}
     for attempt in range(3):
         try:

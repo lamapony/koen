@@ -39,6 +39,8 @@ def main() -> int:
     bol106_per = any_period("bol106_gnsap")
     byg_periods = sorted(next(iter(T["bygv33_fuldfoert"].values())))[-4:]
     fly_per = c["flows"]["period"]
+    bev_periods = sorted(next(iter(T["bev107_b05"].values())))
+    ejl_per = any_period("ejdfoe1_ejerlejl_gns")
 
     def div(a, b, scale=1.0):
         if a is None or b is None or b == 0:
@@ -80,12 +82,21 @@ def main() -> int:
         p26, p36 = g("frkm126_pop", k, "2026"), g("frkm126_pop", k, "2036")
         bost = g("bost63_husstande", k, bost_per)
         aa = None if almen is None or andel is None else almen + andel
+        imm = [g("bev107_b08aa", k, p) for p in bev_periods]
+        imm_avg = None if any(x is None for x in imm) else sum(imm) / len(imm)
+        ejl_n = g("ejdfoe1_ejerlejl_antal", k, ejl_per)
+        ejl_val = g("ejdfoe1_ejerlejl_gns", k, ejl_per)
+        if not ejl_n or not ejl_val:
+            ejl_val = None
         values[k] = {
+            "B1": div(aa, adults, 100),
             "D1": div(adults, aa),
             "D2": None if pop is None or not pop_back else (pop / pop_back - 1) * 100,
             "D3": None if p26 is None or not p36 else (p36 / p26 - 1) * 100,
             "D4": div(young, pop, 100),
+            "D5": div(imm_avg, pop, 1000),
             "P1": div(andel_val, income),
+            "P2": div(ejl_val, income),
             "S1": div(comp_sum, pop, 1000),
             "S2": None if occ is None or unocc is None else unocc / (occ + unocc) * 100,
             # Extra lenses (not in the index)
@@ -95,6 +106,7 @@ def main() -> int:
             "ALMEN_N": almen,
             "ALMEN_PCT": div(almen, occ, 100),
             "ANDELSVAERDI": andel_val,
+            "EJERLEJL_VAERDI": ejl_val,
             "INDKOMST": income,
             "NYBYG_AA": div(comp_aa_sum, pop, 1000),
             "NETFLYT": div(netflow[k], pop, 1000),
@@ -106,31 +118,49 @@ def main() -> int:
         return {"table": table, "url": f"https://www.statistikbanken.dk/{table}", "updated": c["updated"].get(table)}
 
     meta = [
-        {"id": "D1", "da": "Voksne pr. almen- eller andelsbolig", "en": "Adults per social or co-op dwelling", "unit": "voksne", "dec": 1,
-         "dir": 1, "w": 0.25, "kind": "derived", "tables": ["FOLK1A", "BOL101"], "period": f"{folk_per} / {bol_per}",
-         "formula_da": "Personer 18+ (FOLK1A) delt med beboede boliger ejet af almene boligselskaber og andelsboligforeninger (BOL101, ejerforhold 20 og 41).",
-         "formula_en": "Residents aged 18+ (FOLK1A) divided by occupied dwellings owned by social housing companies and housing co-ops (BOL101, owner 20 and 41)."},
-        {"id": "D2", "da": "Befolkningsvækst, 5 år", "en": "Population growth, 5 years", "unit": "%", "dec": 1,
-         "dir": 1, "w": 0.15, "kind": "measured", "tables": ["FOLK1A"], "period": f"{folk_back} til {folk_per}",
-         "formula_da": f"Befolkning {folk_per} mod {folk_back} (FOLK1A).", "formula_en": f"Population {folk_per} vs {folk_back} (FOLK1A)."},
-        {"id": "D3", "da": "Forventet vækst til 2036", "en": "Projected growth to 2036", "unit": "%", "dec": 1,
-         "dir": 1, "w": 0.10, "kind": "projection", "tables": ["FRKM126"], "period": "2026 til 2036",
-         "formula_da": "Befolkningsfremskrivning 2036 mod 2026 (FRKM126).", "formula_en": "Population projection 2036 vs 2026 (FRKM126)."},
+        # Køtryk v2 (docs/METHOD.md). Index members carry "dir" and "w"; the rest are lenses.
+        {"id": "B1", "da": "Almen- og andelsboliger pr. 100 voksne", "en": "Social and co-op dwellings per 100 adults", "unit": "pr. 100", "dec": 1,
+         "dir": 1, "w": 0.30, "kind": "derived", "tables": ["BOL101", "FOLK1A"], "period": f"{bol_per} / {folk_per}",
+         "formula_da": "Beboede boliger ejet af almene boligselskaber og andelsboligforeninger (BOL101, ejerforhold 20 og 41) pr. 100 personer på 18 år og derover (FOLK1A). Flere boliger med venteliste betyder flere, der står i kø.",
+         "formula_en": "Occupied dwellings owned by social housing companies and housing co-ops (BOL101, owner 20 and 41) per 100 residents aged 18+ (FOLK1A). More dwellings with a waiting list means more people in a queue."},
         {"id": "D4", "da": "Unge voksne (20 til 34 år)", "en": "Young adults (20 to 34)", "unit": "%", "dec": 1,
-         "dir": 1, "w": 0.15, "kind": "measured", "tables": ["FOLK1A"], "period": folk_per,
-         "formula_da": "Andel af befolkningen i alderen 20 til 34 år (FOLK1A).", "formula_en": "Share of residents aged 20 to 34 (FOLK1A)."},
+         "dir": 1, "w": 0.20, "kind": "measured", "tables": ["FOLK1A"], "period": folk_per,
+         "formula_da": "Andel af befolkningen i alderen 20 til 34 år (FOLK1A). Den aldersgruppe, der oftest søger bolig.",
+         "formula_en": "Share of residents aged 20 to 34 (FOLK1A). The age group that most often looks for a home."},
+        {"id": "D5", "da": "Indvandrede pr. 1.000 indbyggere", "en": "Immigrants per 1,000 residents", "unit": "pr. 1.000", "dec": 1,
+         "dir": 1, "w": 0.10, "kind": "measured", "tables": ["BEV107", "FOLK1A"], "period": f"{bev_periods[0]} til {bev_periods[-1]}",
+         "formula_da": f"Indvandrede pr. år, gennemsnit {bev_periods[0]} til {bev_periods[-1]} (BEV107), pr. 1.000 indbyggere (FOLK1A). Nye tilflyttere fra udlandet skal finde en bolig.",
+         "formula_en": f"Immigrants per year, average {bev_periods[0]} to {bev_periods[-1]} (BEV107), per 1,000 residents (FOLK1A). New arrivals from abroad need a home."},
+        {"id": "D2", "da": "Befolkningsvækst, 5 år", "en": "Population growth, 5 years", "unit": "%", "dec": 1,
+         "dir": 1, "w": 0.10, "kind": "measured", "tables": ["FOLK1A"], "period": f"{folk_back} til {folk_per}",
+         "formula_da": f"Befolkning {folk_per} mod {folk_back} (FOLK1A).", "formula_en": f"Population {folk_per} vs {folk_back} (FOLK1A)."},
         {"id": "P1", "da": "Andelsværdi mod indkomst", "en": "Co-op value to income", "unit": "x", "dec": 1,
-         "dir": 1, "w": 0.15, "kind": "derived", "tables": ["EJDFOE1", "INDKP106"], "period": f"{ejd_per} / {ind_per}",
+         "dir": 1, "w": 0.10, "kind": "derived", "tables": ["EJDFOE1", "INDKP106"], "period": f"{ejd_per} / {ind_per}",
          "formula_da": "Gennemsnitlig markedsværdi af andelsboliger ejet af kommunens beboere (EJDFOE1) delt med gennemsnitlig disponibel indkomst (INDKP106). En formuestatistik, ikke en salgspris.",
          "formula_en": "Average market value of co-op dwellings held by residents (EJDFOE1) divided by average disposable income (INDKP106). A wealth statistic, not a sales price."},
-        {"id": "S1", "da": "Nybyggeri pr. 1.000 indbyggere", "en": "New dwellings per 1,000 residents", "unit": "pr. 1.000", "dec": 1,
-         "dir": -1, "w": 0.10, "kind": "measured", "tables": ["BYGV33"], "period": f"{byg_periods[0]} til {byg_periods[-1]}",
-         "formula_da": "Fuldførte boliger de seneste 4 kvartaler (BYGV33) pr. 1.000 indbyggere. Mere byggeri trækker køtrykket ned.",
-         "formula_en": "Dwellings completed in the last 4 quarters (BYGV33) per 1,000 residents. More building lowers the pressure."},
+        {"id": "P2", "da": "Ejerlejlighedsværdi mod indkomst", "en": "Flat value to income", "unit": "x", "dec": 1,
+         "dir": 1, "w": 0.10, "kind": "derived", "tables": ["EJDFOE1", "INDKP106"], "period": f"{ejl_per} / {ind_per}",
+         "formula_da": "Gennemsnitlig markedsværdi af ejerlejligheder ejet af kommunens beboere (EJDFOE1) delt med gennemsnitlig disponibel indkomst (INDKP106). Dyre ejerlejligheder skubber flere over i køerne. En formuestatistik, ikke en salgspris.",
+         "formula_en": "Average market value of owner-occupied flats held by residents (EJDFOE1) divided by average disposable income (INDKP106). Expensive flats push more people into the queues. A wealth statistic, not a sales price."},
         {"id": "S2", "da": "Tomme boliger", "en": "Empty dwellings", "unit": "%", "dec": 1,
          "dir": -1, "w": 0.10, "kind": "measured", "tables": ["BOL101"], "period": bol_per,
          "formula_da": "Boliger uden CPR-tilmeldte personer som andel af alle boliger, ekskl. fritidshuse (BOL101). Flere tomme boliger trækker køtrykket ned.",
          "formula_en": "Dwellings with no registered residents as a share of all dwellings, excluding holiday homes (BOL101). More empty dwellings lower the pressure."},
+        # Lenses that were in the v1 index (kept for the map and the explorer, no longer weighted).
+        {"id": "D1", "da": "Voksne pr. almen- eller andelsbolig", "en": "Adults per social or co-op dwelling", "unit": "voksne", "dec": 1,
+         "kind": "derived", "tables": ["FOLK1A", "BOL101"], "period": f"{folk_per} / {bol_per}",
+         "formula_da": "Personer 18+ (FOLK1A) delt med beboede boliger ejet af almene boligselskaber og andelsboligforeninger (BOL101, ejerforhold 20 og 41). Det omvendte af B1; var med i Køtryk v1.",
+         "formula_en": "Residents aged 18+ (FOLK1A) divided by occupied dwellings owned by social housing companies and housing co-ops (BOL101, owner 20 and 41). The inverse of B1; part of Køtryk v1."},
+        {"id": "D3", "da": "Forventet vækst til 2036", "en": "Projected growth to 2036", "unit": "%", "dec": 1,
+         "kind": "projection", "tables": ["FRKM126"], "period": "2026 til 2036",
+         "formula_da": "Befolkningsfremskrivning 2036 mod 2026 (FRKM126).", "formula_en": "Population projection 2036 vs 2026 (FRKM126)."},
+        {"id": "S1", "da": "Nybyggeri pr. 1.000 indbyggere", "en": "New dwellings per 1,000 residents", "unit": "pr. 1.000", "dec": 1,
+         "kind": "measured", "tables": ["BYGV33"], "period": f"{byg_periods[0]} til {byg_periods[-1]}",
+         "formula_da": "Fuldførte boliger de seneste 4 kvartaler (BYGV33) pr. 1.000 indbyggere.",
+         "formula_en": "Dwellings completed in the last 4 quarters (BYGV33) per 1,000 residents."},
+        {"id": "EJERLEJL_VAERDI", "da": "Gennemsnitlig markedsværdi af ejerlejlighed", "en": "Average market value of owner-occupied flat", "unit": "kr.", "dec": 0, "kind": "measured", "tables": ["EJDFOE1"], "period": ejl_per,
+         "formula_da": "Gennemsnitlig markedsværdi af ejerlejligheder ejet af personer med bopæl i kommunen (EJDFOE1). Ikke en salgspris.",
+         "formula_en": "Average market value of owner-occupied flats owned by residents of the kommune (EJDFOE1). Not a sales price."},
         {"id": "POP", "da": "Befolkning", "en": "Population", "unit": "personer", "dec": 0, "kind": "measured", "tables": ["FOLK1A"], "period": folk_per,
          "formula_da": "Befolkningen den 1. i kvartalet (FOLK1A).", "formula_en": "Population on the first day of the quarter (FOLK1A)."},
         {"id": "ANDEL_N", "da": "Andelsboliger (antal)", "en": "Co-op dwellings (count)", "unit": "boliger", "dec": 0, "kind": "measured", "tables": ["BOL101"], "period": bol_per,

@@ -1,6 +1,7 @@
-"""Køtryk (modelled queue pressure index), PLAN.md section 2.3.
+"""Køtryk v2 (modelled queue pressure index), docs/METHOD.md.
 
-z_i = clamp((x_i - median_i) / (1.4826 * MAD_i), -2.5, 2.5), sign-flipped for S1, S2
+Index members and weights come from indicators meta (entries with "w"): B1, D4, D5, D2, P1, P2, S2.
+z_i = clamp((x_i - median_i) / (1.4826 * MAD_i), -2.5, 2.5), sign-flipped where dir = -1 (S2)
 raw = sum(w_i * z_i) over non-null indicators, weights renormalised
 koetryk = percentile rank of raw in [0, 1]
 Uncertainty band: min..max percentile across 200 Dirichlet weight draws around the defaults (seeded).
@@ -18,7 +19,6 @@ import sys
 
 from common import RAW
 
-INDEX_IDS = ["D1", "D2", "D3", "D4", "P1", "S1", "S2"]
 CLAMP = 2.5
 N_DRAWS = 200
 DIRICHLET_CONCENTRATION = 20.0
@@ -87,6 +87,7 @@ def main() -> int:
     meta = {m["id"]: m for m in ind["meta"]}
     codes = [k["kode"] for k in ind["kommuner"]]
     n = len(codes)
+    INDEX_IDS = [m["id"] for m in ind["meta"] if "w" in m]
     W = {k: meta[k]["w"] for k in INDEX_IDS}
     assert abs(sum(W.values()) - 1) < 1e-9
 

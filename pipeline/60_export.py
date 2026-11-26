@@ -53,9 +53,12 @@ def main() -> int:
             }]
         kommuner.append(row)
 
+    val = json.loads((RAW / "clean" / "validation.json").read_text("utf-8"))
+    validation = {k: val[k] for k in ("before", "after", "leaveOneAnchorOut", "weightDrawsTop15", "topN", "maxOwner3Rho")}
     meta = {
         "indicators": ind["meta"],
-        "index": {"ids": ix["ids"], "weights": ix["weights"], "loo": ix["loo"], "params": ix["params"]},
+        "index": {"ids": ix["ids"], "weights": ix["weights"], "loo": ix["loo"], "params": ix["params"],
+                  "version": 2, "validation": validation},
     }
 
     codes = [k["kode"] for k in ind["kommuner"]]

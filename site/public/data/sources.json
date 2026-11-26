@@ -1,6 +1,25 @@
 {
-  "generated": "2026-11-26T16:03:26+00:00",
+  "generated": "2026-11-26T17:48:10+00:00",
   "sources": [
+    {
+      "id": "dst-bev107-flyt",
+      "kind": "statistics",
+      "publisher": "Danmarks Statistik",
+      "title": "BEV107 Befolkningens udvikling (tilflyttede og indvandrede)",
+      "url": "https://www.statistikbanken.dk/BEV107",
+      "api": "https://api.statbank.dk/v1/data",
+      "licence": {
+        "name": "CC 4.0 BY",
+        "url": "https://www.dst.dk/da/presse/kildeangivelse"
+      },
+      "attribution": "Kilde: Danmarks Statistik. Afledte tal: egne beregninger baseret på tal fra Danmarks Statistik.",
+      "period": "2021 til 2025",
+      "tableUpdated": "2026-02-12T08:00:00",
+      "fetchedAt": "2026-11-26T17:48:03+00:00",
+      "sha256": "abc35b21ca0027309516b7c06441e003e8fce359a700d36a014a4726a68c2fb2",
+      "rows": 3960,
+      "status": "ok"
+    },
     {
       "id": "dst-bol101-ejer",
       "kind": "statistics",
@@ -119,7 +138,7 @@
       "id": "dst-ejdfoe1-andel",
       "kind": "statistics",
       "publisher": "Danmarks Statistik",
-      "title": "EJDFOE1 Formue i fast ejendom (andelsboliger, markedsværdi)",
+      "title": "EJDFOE1 Formue i fast ejendom (andelsboliger og ejerlejligheder, markedsværdi)",
       "url": "https://www.statistikbanken.dk/EJDFOE1",
       "api": "https://api.statbank.dk/v1/data",
       "licence": {
@@ -132,6 +151,25 @@
       "fetchedAt": "2026-11-26T16:00:05+00:00",
       "sha256": "701cfcd99b9ae09fa21ccbb4c82b3e56e02aca381c41f8f0c1d83265954b9ea6",
       "rows": 4576,
+      "status": "ok"
+    },
+    {
+      "id": "dst-ejdfoe1-ejerlejl",
+      "kind": "statistics",
+      "publisher": "Danmarks Statistik",
+      "title": "EJDFOE1 Formue i fast ejendom (andelsboliger og ejerlejligheder, markedsværdi)",
+      "url": "https://www.statistikbanken.dk/EJDFOE1",
+      "api": "https://api.statbank.dk/v1/data",
+      "licence": {
+        "name": "CC 4.0 BY",
+        "url": "https://www.dst.dk/da/presse/kildeangivelse"
+      },
+      "attribution": "Kilde: Danmarks Statistik. Afledte tal: egne beregninger baseret på tal fra Danmarks Statistik.",
+      "period": "2025",
+      "tableUpdated": "2026-05-12T08:00:00",
+      "fetchedAt": "2026-11-26T17:48:10+00:00",
+      "sha256": "60ec53cadf87eb8b223e9ccc01eb797c44d2b4d8c0264dc34be384602749fce0",
+      "rows": 208,
       "status": "ok"
     },
     {
@@ -362,9 +400,9 @@
         "name": "Ikke afklaret",
         "url": null
       },
+      "period": "ikke hentet",
       "status": "flag-off",
-      "note": "Ikke hentet. Afventer forfatterens godkendelse (PLAN.md, åbent spørgsmål 1). Laget er skjult bag et flag.",
-      "period": "ikke hentet"
+      "note": "Ikke hentet. Afventer forfatterens godkendelse (PLAN.md, åbent spørgsmål 1). Laget er skjult bag et flag."
     }
   ]
 }
