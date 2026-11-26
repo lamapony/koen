@@ -1,0 +1,370 @@
+{
+  "generated": "2026-11-26T16:03:26+00:00",
+  "sources": [
+    {
+      "id": "dst-bol101-ejer",
+      "kind": "statistics",
+      "publisher": "Danmarks Statistik",
+      "title": "BOL101 Boliger efter område, beboertype, ejerforhold",
+      "url": "https://www.statistikbanken.dk/BOL101",
+      "api": "https://api.statbank.dk/v1/data",
+      "licence": {
+        "name": "CC 4.0 BY",
+        "url": "https://www.dst.dk/da/presse/kildeangivelse"
+      },
+      "attribution": "Kilde: Danmarks Statistik. Afledte tal: egne beregninger baseret på tal fra Danmarks Statistik.",
+      "period": "2010 til 2026",
+      "tableUpdated": "2026-04-08T08:00:00",
+      "fetchedAt": "2026-11-26T15:59:44+00:00",
+      "sha256": "f2cda317aea4282a1446467e8ecc9826d2e23e925a03bc4c12f9410aed907b8b",
+      "rows": 6960,
+      "status": "ok"
+    },
+    {
+      "id": "dst-bol101-total",
+      "kind": "statistics",
+      "publisher": "Danmarks Statistik",
+      "title": "BOL101 Boliger efter område, beboertype, ejerforhold",
+      "url": "https://www.statistikbanken.dk/BOL101",
+      "api": "https://api.statbank.dk/v1/data",
+      "licence": {
+        "name": "CC 4.0 BY",
+        "url": "https://www.dst.dk/da/presse/kildeangivelse"
+      },
+      "attribution": "Kilde: Danmarks Statistik. Afledte tal: egne beregninger baseret på tal fra Danmarks Statistik.",
+      "period": "2010 til 2026",
+      "tableUpdated": "2026-04-08T08:00:00",
+      "fetchedAt": "2026-11-26T15:59:48+00:00",
+      "sha256": "89b01835fab229673cf44009f37dc29d9f7c78d5d8849d574c01f3f788f42a0b",
+      "rows": 3480,
+      "status": "ok"
+    },
+    {
+      "id": "dst-bol106-m2",
+      "kind": "statistics",
+      "publisher": "Danmarks Statistik",
+      "title": "BOL106 Boligareal og beboere pr. bolig",
+      "url": "https://www.statistikbanken.dk/BOL106",
+      "api": "https://api.statbank.dk/v1/data",
+      "licence": {
+        "name": "CC 4.0 BY",
+        "url": "https://www.dst.dk/da/presse/kildeangivelse"
+      },
+      "attribution": "Kilde: Danmarks Statistik. Afledte tal: egne beregninger baseret på tal fra Danmarks Statistik.",
+      "period": "2026",
+      "tableUpdated": "2026-04-08T08:00:00",
+      "fetchedAt": "2026-11-26T16:00:58+00:00",
+      "sha256": "c26f4603db39b60943606bdb38c8773f6d78a12ef42fd11246ab0bf6a0096aaf",
+      "rows": 232,
+      "status": "ok"
+    },
+    {
+      "id": "dst-bost63-husstande",
+      "kind": "statistics",
+      "publisher": "Danmarks Statistik",
+      "title": "BOST63 Boligstøtte",
+      "url": "https://www.statistikbanken.dk/BOST63",
+      "api": "https://api.statbank.dk/v1/data",
+      "licence": {
+        "name": "CC 4.0 BY",
+        "url": "https://www.dst.dk/da/presse/kildeangivelse"
+      },
+      "attribution": "Kilde: Danmarks Statistik. Afledte tal: egne beregninger baseret på tal fra Danmarks Statistik.",
+      "period": "2016 til 2025",
+      "tableUpdated": "2026-03-13T08:00:00",
+      "fetchedAt": "2026-11-26T16:00:38+00:00",
+      "sha256": "a1f6125b6a0148b7e70a9d16b4b1b3ac729385482e0353ee6887d9371ff92953",
+      "rows": 1000,
+      "status": "ok"
+    },
+    {
+      "id": "dst-bygv33-fuldfoert",
+      "kind": "statistics",
+      "publisher": "Danmarks Statistik",
+      "title": "BYGV33 Boliger i det samlede boligbyggeri",
+      "url": "https://www.statistikbanken.dk/BYGV33",
+      "api": "https://api.statbank.dk/v1/data",
+      "licence": {
+        "name": "CC 4.0 BY",
+        "url": "https://www.dst.dk/da/presse/kildeangivelse"
+      },
+      "attribution": "Kilde: Danmarks Statistik. Afledte tal: egne beregninger baseret på tal fra Danmarks Statistik.",
+      "period": "2020K4 til 2026K3",
+      "tableUpdated": "2026-11-13T08:00:00",
+      "fetchedAt": "2026-11-26T16:00:21+00:00",
+      "sha256": "1c2737d4a36a02be5942f9cff3bfcdbe0bc004372804ea5dd77e0dee1b723e93",
+      "rows": 2784,
+      "status": "ok"
+    },
+    {
+      "id": "dst-bygv33-fuldfoert_bygherre",
+      "kind": "statistics",
+      "publisher": "Danmarks Statistik",
+      "title": "BYGV33 Boliger i det samlede boligbyggeri",
+      "url": "https://www.statistikbanken.dk/BYGV33",
+      "api": "https://api.statbank.dk/v1/data",
+      "licence": {
+        "name": "CC 4.0 BY",
+        "url": "https://www.dst.dk/da/presse/kildeangivelse"
+      },
+      "attribution": "Kilde: Danmarks Statistik. Afledte tal: egne beregninger baseret på tal fra Danmarks Statistik.",
+      "period": "2020K4 til 2026K3",
+      "tableUpdated": "2026-11-13T08:00:00",
+      "fetchedAt": "2026-11-26T16:00:29+00:00",
+      "sha256": "77b43597d99618e328bb397f7988b43b9c43b76b23fa188df3025a9ae795649b",
+      "rows": 5568,
+      "status": "ok"
+    },
+    {
+      "id": "dst-ejdfoe1-andel",
+      "kind": "statistics",
+      "publisher": "Danmarks Statistik",
+      "title": "EJDFOE1 Formue i fast ejendom (andelsboliger, markedsværdi)",
+      "url": "https://www.statistikbanken.dk/EJDFOE1",
+      "api": "https://api.statbank.dk/v1/data",
+      "licence": {
+        "name": "CC 4.0 BY",
+        "url": "https://www.dst.dk/da/presse/kildeangivelse"
+      },
+      "attribution": "Kilde: Danmarks Statistik. Afledte tal: egne beregninger baseret på tal fra Danmarks Statistik.",
+      "period": "2004 til 2025",
+      "tableUpdated": "2026-05-12T08:00:00",
+      "fetchedAt": "2026-11-26T16:00:05+00:00",
+      "sha256": "701cfcd99b9ae09fa21ccbb4c82b3e56e02aca381c41f8f0c1d83265954b9ea6",
+      "rows": 4576,
+      "status": "ok"
+    },
+    {
+      "id": "dst-fly66-matrix",
+      "kind": "statistics",
+      "publisher": "Danmarks Statistik",
+      "title": "FLY66 Flytninger mellem kommuner",
+      "url": "https://www.statistikbanken.dk/FLY66",
+      "api": "https://api.statbank.dk/v1/data",
+      "licence": {
+        "name": "CC 4.0 BY",
+        "url": "https://www.dst.dk/da/presse/kildeangivelse"
+      },
+      "attribution": "Kilde: Danmarks Statistik. Afledte tal: egne beregninger baseret på tal fra Danmarks Statistik.",
+      "period": "2025",
+      "tableUpdated": "2026-02-17T08:00:00",
+      "fetchedAt": "2026-11-26T16:00:41+00:00",
+      "sha256": "ce08a224f4080561e76d61d1a251f2bc5bda190aeaba89acc59f999fade9800d",
+      "rows": 9801,
+      "status": "ok"
+    },
+    {
+      "id": "dst-folk1a-alder",
+      "kind": "statistics",
+      "publisher": "Danmarks Statistik",
+      "title": "FOLK1A Befolkningen den 1. i kvartalet",
+      "url": "https://www.statistikbanken.dk/FOLK1A",
+      "api": "https://api.statbank.dk/v1/data",
+      "licence": {
+        "name": "CC 4.0 BY",
+        "url": "https://www.dst.dk/da/presse/kildeangivelse"
+      },
+      "attribution": "Kilde: Danmarks Statistik. Afledte tal: egne beregninger baseret på tal fra Danmarks Statistik.",
+      "period": "2021K4 til 2026K4",
+      "tableUpdated": "2026-11-10T08:00:00",
+      "fetchedAt": "2026-11-26T15:59:53+00:00",
+      "sha256": "81410971e9c04ffea2555f24f773a878effa578688ad215e5c84b55928398919",
+      "rows": 26670,
+      "status": "ok"
+    },
+    {
+      "id": "dst-folk1a-hist",
+      "kind": "statistics",
+      "publisher": "Danmarks Statistik",
+      "title": "FOLK1A Befolkningen den 1. i kvartalet",
+      "url": "https://www.statistikbanken.dk/FOLK1A",
+      "api": "https://api.statbank.dk/v1/data",
+      "licence": {
+        "name": "CC 4.0 BY",
+        "url": "https://www.dst.dk/da/presse/kildeangivelse"
+      },
+      "attribution": "Kilde: Danmarks Statistik. Afledte tal: egne beregninger baseret på tal fra Danmarks Statistik.",
+      "period": "2008K1 til 2026K4",
+      "tableUpdated": "2026-11-10T08:00:00",
+      "fetchedAt": "2026-11-26T15:59:56+00:00",
+      "sha256": "28c6c47f8f2afc62cb8b72a70bfd9eaf002d79a29bef348ece11a8684ca01e1c",
+      "rows": 7980,
+      "status": "ok"
+    },
+    {
+      "id": "dst-frkm126-total",
+      "kind": "statistics",
+      "publisher": "Danmarks Statistik",
+      "title": "FRKM126 Befolkningsfremskrivning 2026",
+      "url": "https://www.statistikbanken.dk/FRKM126",
+      "api": "https://api.statbank.dk/v1/data",
+      "licence": {
+        "name": "CC 4.0 BY",
+        "url": "https://www.dst.dk/da/presse/kildeangivelse"
+      },
+      "attribution": "Kilde: Danmarks Statistik. Afledte tal: egne beregninger baseret på tal fra Danmarks Statistik.",
+      "period": "2026 til 2036",
+      "tableUpdated": "2026-06-12T08:00:00",
+      "fetchedAt": "2026-11-26T15:59:57+00:00",
+      "sha256": "9b30898bcbc9fff1e7c2fb0f44d28407accddeb6ec837ba678eced770ec96660",
+      "rows": 198,
+      "status": "ok"
+    },
+    {
+      "id": "dst-indkp106-gns",
+      "kind": "statistics",
+      "publisher": "Danmarks Statistik",
+      "title": "INDKP106 Disponibel indkomst",
+      "url": "https://www.statistikbanken.dk/INDKP106",
+      "api": "https://api.statbank.dk/v1/data",
+      "licence": {
+        "name": "CC 4.0 BY",
+        "url": "https://www.dst.dk/da/presse/kildeangivelse"
+      },
+      "attribution": "Kilde: Danmarks Statistik. Afledte tal: egne beregninger baseret på tal fra Danmarks Statistik.",
+      "period": "2014 til 2025",
+      "tableUpdated": "2026-11-13T08:00:00",
+      "fetchedAt": "2026-11-26T16:00:14+00:00",
+      "sha256": "956be39377e3ac40ed37f1d3952d6e2a922ae8a017aefdc38a4db8d51801ea4f",
+      "rows": 1320,
+      "status": "ok"
+    },
+    {
+      "id": "geoboundaries-dnk-adm2",
+      "fetchedAt": "2026-11-26T16:01:31+00:00",
+      "sha256": "3d45bc4d4faa44c5a64e2bb4773028ee592390aaf6a5bfd5242bdc99d709ed93",
+      "api": "https://www.geoboundaries.org/data/snapshots/1c423398df24ddf6e730b116567d2181c9782778d0459c3f3b76ca2f9f12b6bc/gbOpen/DNK/ADM2/geoBoundaries-DNK-ADM2.geojson",
+      "status": "ok",
+      "kind": "boundaries",
+      "publisher": "geoBoundaries (William & Mary geoLab)",
+      "title": "Denmark ADM2 (kommuner), gbOpen",
+      "url": "https://www.geoboundaries.org/api/current/gbOpen/DNK/ADM2/",
+      "licence": {
+        "name": "Public Domain",
+        "url": "https://commons.wikimedia.org/wiki/File:Map_DK.svg"
+      },
+      "attribution": "Kommunegrænser: geoBoundaries, geoBoundaries, Wikimedia Commons. Grove grænser (år 2018).",
+      "period": "2018",
+      "rows": 98,
+      "note": "Midlertidig grov kilde. Skal erstattes af DAGI fra Datafordeler (se pipeline/01_fetch_boundaries.py)."
+    },
+    {
+      "id": "aarhusbolig-ventelister",
+      "fetchedAt": "2026-11-26T16:01:42+00:00",
+      "sha256": "c413f7ea9aba9bab5220dc1d7b1291e1f55ca44b25ffcb20ab80f70dcb026fba",
+      "api": "https://admin.opendata.dk/dataset/01e0ac24-ac3c-4d04-81b7-cb193df334f9/resource/bc4dd6be-52c3-4e2a-944c-ae03cafe02ab/download/ventelister.xml",
+      "status": "ok",
+      "kind": "measured-queue",
+      "publisher": "Aarhusbolig via Open Data DK",
+      "title": "Aarhusbolig Ventelister.xml",
+      "url": "https://www.opendata.dk/city-of-aarhus/aarhusbolig",
+      "licence": {
+        "name": "CC BY 4.0",
+        "url": "https://creativecommons.org/licenses/by/4.0/"
+      },
+      "attribution": "Kilde: Aarhusbolig, Open Data DK (CC BY 4.0). Øjebliksbillede 2017.",
+      "period": "2017 (filer sidst ændret 2017-11-21)",
+      "rows": 1357
+    },
+    {
+      "id": "aarhusbolig-afdelinger",
+      "fetchedAt": "2026-11-26T16:01:38+00:00",
+      "sha256": "a299f396258953fabca9d356ef6ef76c8a44764fa307dfea6e95918c49c44656",
+      "api": "https://admin.opendata.dk/dataset/01e0ac24-ac3c-4d04-81b7-cb193df334f9/resource/2cf2d6d7-c445-4470-af1f-5724928de04e/download/afdelinger.xml",
+      "status": "ok",
+      "kind": "measured-queue",
+      "publisher": "Aarhusbolig via Open Data DK",
+      "title": "Aarhusbolig Afdelinger.xml",
+      "url": "https://www.opendata.dk/city-of-aarhus/aarhusbolig",
+      "licence": {
+        "name": "CC BY 4.0",
+        "url": "https://creativecommons.org/licenses/by/4.0/"
+      },
+      "attribution": "Kilde: Aarhusbolig, Open Data DK (CC BY 4.0). Øjebliksbillede 2017.",
+      "period": "2017 (filer sidst ændret 2017-11-21)",
+      "rows": null
+    },
+    {
+      "id": "aarhusbolig-selskaber",
+      "fetchedAt": "2026-11-26T16:01:40+00:00",
+      "sha256": "10082d8b753b246221334c91d64a6634700d391294652518e61ec4292110b11b",
+      "api": "https://admin.opendata.dk/dataset/01e0ac24-ac3c-4d04-81b7-cb193df334f9/resource/0f86b7e4-31c0-44df-843d-0fa97e26d0e6/download/selskaber.xml",
+      "status": "ok",
+      "kind": "measured-queue",
+      "publisher": "Aarhusbolig via Open Data DK",
+      "title": "Aarhusbolig Selskaber.xml",
+      "url": "https://www.opendata.dk/city-of-aarhus/aarhusbolig",
+      "licence": {
+        "name": "CC BY 4.0",
+        "url": "https://creativecommons.org/licenses/by/4.0/"
+      },
+      "attribution": "Kilde: Aarhusbolig, Open Data DK (CC BY 4.0). Øjebliksbillede 2017.",
+      "period": "2017 (filer sidst ændret 2017-11-21)",
+      "rows": null
+    },
+    {
+      "id": "kk-almene-boliger",
+      "fetchedAt": "2026-11-26T16:01:43+00:00",
+      "sha256": "9846b6c29866df37ca06d5a1cc6b4a28d3ebca8ab750ce66d4ab9c4797e53468",
+      "api": "https://wfs-kbhkort.kk.dk/k101/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=k101:almene_boliger_kk&outputFormat=json&SRSNAME=EPSG:4326",
+      "status": "ok",
+      "kind": "supply",
+      "publisher": "Københavns Kommune via Open Data DK",
+      "title": "Almene boligforeninger (afdelinger)",
+      "url": "https://www.opendata.dk/city-of-copenhagen/almene-boligforeninger",
+      "licence": {
+        "name": "CC BY 4.0",
+        "url": "https://creativecommons.org/licenses/by/4.0/"
+      },
+      "attribution": "Kilde: Københavns Kommune, Open Data DK (CC BY 4.0).",
+      "period": "ikke angivet i datasættet",
+      "rows": 507
+    },
+    {
+      "id": "osm-nominatim-postnumre",
+      "kind": "geocoding",
+      "publisher": "OpenStreetMap Nominatim",
+      "title": "Postnummer-centroider til Aarhusbolig (28 opslag)",
+      "url": "https://nominatim.openstreetmap.org/",
+      "licence": {
+        "name": "ODbL 1.0",
+        "url": "https://www.openstreetmap.org/copyright"
+      },
+      "attribution": "© OpenStreetMap-bidragydere (ODbL).",
+      "period": "aktuel",
+      "fetchedAt": "2026-11-26T16:03:26+00:00",
+      "rows": 28,
+      "status": "ok"
+    },
+    {
+      "id": "openfreemap",
+      "kind": "basemap",
+      "publisher": "OpenFreeMap",
+      "title": "Vektorfliser (runtime)",
+      "url": "https://openfreemap.org/",
+      "licence": {
+        "name": "ODbL (OSM data), MIT (OpenFreeMap)",
+        "url": "https://openfreemap.org/tos/"
+      },
+      "attribution": "OpenFreeMap © OpenMapTiles Data from OpenStreetMap",
+      "period": "aktuel",
+      "fetchedAt": null,
+      "status": "runtime",
+      "note": "Hentes af browseren ved visning. Kortet virker også uden (data-lagene er lokale)."
+    },
+    {
+      "id": "ventelistevalg",
+      "kind": "measured-queue",
+      "publisher": "Ventelistevalg",
+      "title": "Offentligt katalog, København og Frederiksberg",
+      "url": "https://ventelistevalg.dk/lister/andels",
+      "licence": {
+        "name": "Ikke afklaret",
+        "url": null
+      },
+      "status": "flag-off",
+      "note": "Ikke hentet. Afventer forfatterens godkendelse (PLAN.md, åbent spørgsmål 1). Laget er skjult bag et flag.",
+      "period": "ikke hentet"
+    }
+  ]
+}
