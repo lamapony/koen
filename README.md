@@ -8,7 +8,17 @@ Køen is a free showcase made by the people behind [Ventelistevalg](https://vent
 
 ## Status
 
-Planning. Nothing is built or deployed yet. The full plan, including every dataset with its URL, licence and verification date, is in [PLAN.md](PLAN.md).
+v1 runs locally. Nothing is deployed. The plan is in [PLAN.md](PLAN.md); what was built and how it differs is in [docs/BUILD-NOTES.md](docs/BUILD-NOTES.md); the method note is in [docs/method.md](docs/method.md).
+
+## Run it
+
+```sh
+make data-offline      # or: make data (fetches what is not cached)
+make check
+cd site && npm install && npm run dev
+```
+
+The pipeline needs [uv](https://docs.astral.sh/uv/) and Python 3.12. All processed data the site needs is committed in `site/public/data/`, with `sources.json` listing source, licence, period and fetch date for every dataset.
 
 ## Licence
 
