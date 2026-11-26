@@ -1,6 +1,55 @@
-# Build notes: Køen v1 (local build, 2026-11-26)
+# Build notes: Køen v1 with Køtryk v2 (local build, 2026-11-26)
 
 Status: runs locally. Nothing is deployed, pushed or published. No analytics, no email capture, no cookies.
+
+## Pass 3: Køtryk v2, Ventelistevalg funnel, first screen (2026-11-26, evening)
+
+Owner decisions were delegated to the builder for this pass. Commits on `build/v1`, nothing pushed.
+
+Inputs: `../orch2/agy-method.md` holds one line ("I am starting by inspecting the files...") and no findings, so there was nothing to verify or apply from it. `docs/review/*.md` as before.
+
+### 1. Ranking method (details in `docs/METHOD.md`)
+
+- D1 (adults per almen/andel dwelling) pointed the wrong way for "how many people queue". v2 uses **B1 = almen + andel dwellings per 100 adults**, direction up. D1, D3 and S1 stay as lenses without weight.
+- New DST inputs, fetched and cached through the pipeline: **BEV107** (immigrants, moves; 2021 to 2025) and **EJDFOE1 type B** (owner-occupied flat values). New indicators D5 (immigrants per 1,000) and P2 (flat value to income). Net inflow was tested and rejected (København no. 87), and gross domestic inflow is size-biased; both reasons are in METHOD.md. DST has no kommune-level sales prices or rents.
+- Weights: B1 30, D4 20, D5 10, D2 10, P1 10, P2 10, S2 10 (round, set before validation).
+- `pipeline/55_validate.py` (new, runs in `make process`): AUC and Spearman vs three anchors for v1 and v2, leave-one-anchor-out over a fixed family of 8 specs, share of weight draws keeping the anchors in the top 15, and a KK almene count check. `make check` fails if v2 AUC drops below 0.9 or below v1.
+- Result: København / Frederiksberg / Aarhus at **2 / 3 / 10** (v1: 19 / 16 / 6). Owner3 AUC 0.877 to 0.968; Ventelistevalg AUC 0.833 to 0.990; Aarhusbolig Spearman 0.50 to 1.00 (n = 3). Leave-one-anchor-out puts the held-out city at rank 2, 2 and 4. "Price only" scores higher on the anchors and was not adopted (METHOD.md says why).
+- Brøndby is no. 1. It is first or tied first in six of eight specs, so it is a property of the data, not a weight artefact, and it was not tuned away. The method panel says that the most almen suburbs rank high.
+- `pipeline/common.py` imports `requests` lazily, so offline steps run with the system Python.
+
+### 2. Ventelistevalg integration (details in `docs/INTEGRATION.md`)
+
+- Kommune card links to real Ventelistevalg pages only: 8 København bydel pages plus Frederiksberg, `/lister/andels`, `/lister/almene` (Region Hovedstaden), `/fornyelsesradar` and `/vejledning` for all. `utm_source=koen&utm_medium=map&utm_campaign=<view>`, with the campaign rewritten at click time to the current view.
+- `/ko-vagt`, `/ventelistetjek` and `/foreningsroentgen` exist in the source but answer 404 live, so they are not linked.
+- Fornyelsesradar price checked live and in source: **99 kr/år inkl. moms, 12 months, no automatic renewal**. 99 kr. kept; the copy now also says the calendar file is free.
+- Brand: Source Sans 3 and Source Serif 4 from `../andelplan/src/fonts` replace Atkinson and Fraunces; ink, muted, focus and the brick action follow Ventelistevalg tokens; the CTA is the one filled brick button. Map palette and Plex Mono labels unchanged. "Et projekt fra Ventelistevalg" under the tagline.
+- `../andelplan` branch `koen-integration`, commit 41db3646 (not pushed): optional `/koen` rewrite plus a `/koen` CSP rule that adds the OpenFreeMap tile origin, both off unless `KOEN_ORIGIN` is set. Its 3 unit tests pass; andelplan's own build and suite were not run (no `node_modules` there).
+- Recommendation: serve Køen at `ventelistevalg.dk/koen` through that rewrite first; move the route to the Cloudflare Worker if proxy load shows up. A subdomain needs a DNS change and Dima's yes.
+
+### 3. First screen views
+
+Ten lenses on the first screen, eight behind a native "Flere visninger" disclosure (opens by itself when a hidden lens is active, for example from a permalink). The rail fits at 1440 x 900 with no scroll; `npm run test:smoke` checks this.
+
+| First screen | Why |
+| --- | --- |
+| Køtryk | The product |
+| Rigtige køer | The only measured queues; the honesty layer |
+| Usikkerhed | Shows how far to trust the ranking |
+| Andelsboliger, Almene boliger | The two stocks people queue for; also the Ventelistevalg catalog topics |
+| Boliger med kø (B1) | Biggest weight in v2 (30 %) |
+| Værdi mod indkomst (P1) | Price side of the index, people know andel prices |
+| Unge voksne (D4) | Second biggest weight, the clearest city signal |
+| Vækst (D2) | Demand people recognise |
+| Flyttestrømme | The most visual lens (arcs), and context for the suburbs |
+
+Under Flere: Ejerlejlighed mod indkomst (P2) and Indvandring (D5), both new index parts with 10 %; Tomme boliger (S2, 10 %); Nybyggeri, Andelsværdi, Boligstøtte and 2036 (context, not in the index); Voksne pr. bolig (the old D1, kept so v1 can be compared). Explorer defaults to B1 vs P2.
+
+### 4. Checks and screenshots
+
+`npm run build`, `npm test` (9 Python + 4 Vitest), `npm run test:smoke` (now also checks the rail at 1440 x 900, UTM tags, the click-time campaign and that Odense gets no andels links) and `make check` (0 failures) pass at the end of this pass. Root `package.json` got a `test:smoke` script. All shots in `docs/shots/` retaken (01 to 13 plus new 14 Frederiksberg card, 15 Flere open, 16 method validation table).
+
+Note on running: Vite allows one dev server per project, so stop `npm run dev` before `npm run test:smoke`.
 
 ## How to run
 
@@ -79,7 +128,7 @@ Output size: `site/public/data` is 664 KB on disk (kommuner.json 49 KB raw, hex7
 
 ## Honest notes on the data
 
-- **The default ranking needs a human read** (PLAN.md milestone 2:45 asks for it). Top 10 with default weights: Vallensbæk, Brøndby, Høje-Taastrup, Glostrup, Herlev, Aarhus, Gribskov, Ballerup, Albertslund, Ishøj. København is 0.81 (no. 19), Frederiksberg 0.85. Reasons: D4 and P1 clamp at +2.5 for the big cities so they cannot separate further, and D1 (adults per almen or andels dwelling) is low in København and Frederiksberg because they have many such dwellings, while it saturates in places with few of them (Gribskov, Lejre, Vallensbæk). This follows the formula in the plan exactly; changing the method was not my call. Worth deciding before launch whether D1 should stay as defined.
+- **The default ranking needed a human read.** v1 put Vallensbæk, Brøndby and Høje-Taastrup on top and København at no. 19. Fixed in pass 3 (Køtryk v2, `docs/METHOD.md`).
 - Uncertainty bands are wide for many kommuner (København: top 6 % to top 89 %). The UI shows this rather than hiding it.
 - EJDFOE1 has no andelsbolig value for one kommune: shown hatched as "Ingen åbne data", never as zero. BOL101 reports 0 andelsboliger for one kommune: that is a real DST zero and is shown as such.
 - Aarhusbolig: 1,357 lists, 393 afdelinger, longest single list 22,875 people (Marselisgården I, 2 rum). Some afdelinger are in Favrskov and Skanderborg, so those kommuner also get a measured block.
@@ -103,17 +152,17 @@ Applied:
 
 ## Left after the design pass
 
-- Mode rail still scrolls at 1440 x 900 (about 10 of 15 lenses visible). Real fix is editorial: fewer lenses on the first screen.
+- Mode rail still scrolls at 1440 x 900 (about 10 of 15 lenses visible). Fixed in pass 3: ten lenses plus Flere visninger.
 - Default 3D pitch hides part of the Copenhagen suburbs behind North Zealand (table and 2D view cover it).
 - deck.gl TextLayer label backgrounds are slightly narrow for values with a unit word ("2,42 mio.").
 - Map chunk is still 554 KB gzip. Next step: replace `H3HexagonLayer` (`@deck.gl/geo-layers`) with a `SolidPolygonLayer` of precomputed hex rings, then measure Lighthouse mobile on real hardware.
 - No screen-reader pass with VoiceOver or NVDA yet; dialogs are `aria-modal` but have no full focus trap.
-- The self-hosted fonts in `site/public/fonts` (Fraunces, Atkinson Hyperlegible Next, IBM Plex Mono; SIL Open Font License per their upstream projects, to be confirmed) ship without their licence files. The OFL asks for the licence to travel with the font files, so copy each upstream `OFL.txt` next to the WOFF2 files before launch. Not done here because no local copy of the licence texts was available and I did not want to write them from memory.
-- Fornyelsesradar price (99 kr.) is taken from PLAN.md, which says it matched the live product copy on 2026-11-26. Re-check before launch.
+- The self-hosted fonts in `site/public/fonts` (since pass 3: Source Sans 3, Source Serif 4, IBM Plex Mono; SIL Open Font License per their upstream projects, to be confirmed) ship without their licence files. The OFL asks for the licence to travel with the font files, so copy each upstream `OFL.txt` next to the WOFF2 files before launch. Not done here because no local copy of the licence texts was available and I did not want to write them from memory.
+- Fornyelsesradar price re-checked live on 2026-11-26 in pass 3: 99 kr/år inkl. moms. Re-check again before launch.
 
 ## What is missing
 
-- **Git commits.** In the design pass, `git add` and `git commit` were again refused by the tool permission layer ("requires approval"), so nothing from the first build or the design pass is committed. The working tree holds everything. Planned commits, in order:
+- **Git commits.** (Resolved: the first build and design pass were committed before pass 3, and pass 3 is committed in small commits.) In the design pass, `git add` and `git commit` were again refused by the tool permission layer ("requires approval"), so nothing from the first build or the design pass is committed. The working tree holds everything. Planned commits, in order:
   1. `pipeline/ Makefile pyproject.toml uv.lock .gitignore`: data pipeline.
   2. `site/public/data/`: processed data outputs.
   3. `site/index.html site/src site/scripts site/public/fonts site/tsconfig.json site/vite.config.ts`: the site, including the design-pass fixes (they cannot be split from the first build because none of it was tracked).

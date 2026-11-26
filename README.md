@@ -8,7 +8,7 @@ Køen is a free showcase made by the people behind [Ventelistevalg](https://vent
 
 ## Status
 
-v1 runs locally. Nothing is deployed. The plan is in [PLAN.md](PLAN.md); what was built and how it differs is in [docs/BUILD-NOTES.md](docs/BUILD-NOTES.md); the method note is in [docs/method.md](docs/method.md).
+v1 runs locally. Nothing is deployed. The plan is in [PLAN.md](PLAN.md); what was built and how it differs is in [docs/BUILD-NOTES.md](docs/BUILD-NOTES.md); the method (Køtryk v2, with validation) is in [docs/METHOD.md](docs/METHOD.md).
 
 ## Run it
 
