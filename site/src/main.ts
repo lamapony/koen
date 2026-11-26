@@ -1,0 +1,252 @@
+import "./styles.css";
+import { loadAll, loadKK } from "./data";
+import { ctx, recomputeIndex, recomputeMode } from "./ctx";
+import { initState, state, set, subscribe, writeHash, type State } from "./state";
+import { setLang, t, lang } from "./i18n";
+import { buildGeo, setDelays } from "./map/geometry";
+import type { MapController } from "./map/map";
+import { renderMasthead, renderModes, renderLegend, renderFooter, fmtModeValue } from "./ui/chrome";
+import { renderCard } from "./ui/card";
+import { renderExplorer, renderBody, syncTableHighlight, rerenderWeightsKeepFocus } from "./explorer/explorer";
+import { maybeIntro, showMethod, showSources } from "./ui/panels";
+import { startTour } from "./ui/tour";
+import { $, esc, announce, toast } from "./ui/util";
+import { num } from "./format";
+
+const mobile = matchMedia("(max-width: 760px)").matches;
+const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+async function boot(): Promise<void> {
+  // MapLibre + deck.gl are most of the bytes: fetch that chunk in parallel with the data, not before it.
+  const mapModule = import("./map/map");
+  let d;
+  try {
+    d = await loadAll(mobile ? 6 : 7);
+  } catch (e) {
+    $("loading-text").textContent = t().loadError;
+    console.error(e);
+    return;
+  }
+  ctx.d = d;
+  ctx.mobile = mobile;
+  ctx.reducedMotion = reducedMotion;
+  initState(d.meta.index.ids, d.meta.index.weights);
+  setLang(state.lang);
+  applyTheme();
+  ctx.geo = buildGeo(d);
+  const originK = (state.k && d.byKode.get(state.k)) || d.byKode.get("0101")!;
+  setDelays(ctx.geo, originK.centroid);
+  recomputeIndex();
+  recomputeMode();
+
+  // Map labels use Plex Mono; make sure the font is ready before deck builds its atlas.
+  await Promise.race([document.fonts.load('500 11px "IBM Plex Mono"'), new Promise((r) => setTimeout(r, 1500))]);
+
+  const { createMap } = await mapModule;
+  const mc = createMap($("map"), $("inset"), d, ctx.geo, { theme: state.theme, mobile, reducedMotion, cam: state.cam });
+  mc.map.on("moveend", () => {
+    const m = mc.map;
+    const c = m.getCenter();
+    state.cam = [c.lng.toFixed(4), c.lat.toFixed(4), m.getZoom().toFixed(2), m.getPitch().toFixed(0), m.getBearing().toFixed(0)].join(",");
+    writeHash();
+  });
+  wire(mc);
+  (window as unknown as { __koen: Record<string, unknown> }).__koen.map = mc.map;
+  renderAll(mc);
+  if (state.k) mc.setCardOpen(true, d.byKode.get(state.k)?.i);
+  $("app").dataset.loading = "false";
+
+  let started = false;
+  const start = () => {
+    if (started) return;
+    started = true;
+    mc.intro().then(() => (document.documentElement.dataset.ready = "1"));
+  };
+  let loadFired = false;
+  mc.map.once("load", () => {
+    loadFired = true;
+    const shown = maybeIntro(start, showMethod);
+    if (!shown) start();
+  });
+  // If the basemap never loads (offline), still rise. map.loaded() is false while tiles stream,
+  // which used to start the rise behind an open intro dialog, so track the load event instead.
+  setTimeout(() => {
+    if (!loadFired) start();
+  }, 4000);
+}
+
+function applyTheme(): void {
+  document.documentElement.dataset.theme = state.theme;
+  document.body.dataset.theme = state.theme;
+}
+
+function labelsFor(): { k: number; text: string }[] {
+  const m = ctx.mode;
+  if (state.mode === "maalt") return [];
+  const n = mobile ? 4 : 8;
+  return m.values
+    .map((v, i) => [v, i] as const)
+    .filter(([v]) => v !== null)
+    .sort((a, b) => (b[0] as number) - (a[0] as number))
+    .slice(0, n)
+    .map(([v, i]) => ({ k: i, text: `${ctx.d.kommuner[i].navn.toUpperCase()}  ▲ ${shortVal(v as number)}` }));
+}
+
+function shortVal(v: number): string {
+  const m = ctx.mode;
+  if (state.mode === "koetryk") return num(v, 2);
+  if (state.mode === "usikkerhed") return `${num(v, 0)} pp`;
+  if (m.unit === "kr.") return `${num(v / 1e6, 2)} mio.`;
+  if (m.unit === "boliger" || m.unit === "personer") return num(v, 0);
+  if (m.unit === "%") return `${num(v, 1)} %`;
+  return num(v, m.dec);
+}
+
+let kkData: GeoJSON.FeatureCollection | null = null;
+
+function renderMap(mc: MapController): void {
+  const d = ctx.d;
+  const kIdx = state.k ? d.byKode.get(state.k)?.i ?? -1 : -1;
+  const hIdx = state.hover ? d.byKode.get(state.hover)?.i ?? -1 : -1;
+  const brushed = new Set([...state.brushed].map((k) => d.byKode.get(k)?.i ?? -1).filter((i) => i >= 0));
+  let flows: { from: number; to: number; v: number; dir: "in" | "out" }[] = [];
+  const focus = kIdx >= 0 ? kIdx : hIdx;
+  if (state.mode === "flyt" && focus >= 0) {
+    const rows = d.flows.rows;
+    flows = [
+      ...rows.filter((r) => r[0] === focus).sort((a, b) => b[2] - a[2]).slice(0, 8).map((r) => ({ from: r[0], to: r[1], v: r[2], dir: "out" as const })),
+      ...rows.filter((r) => r[1] === focus).sort((a, b) => b[2] - a[2]).slice(0, 8).map((r) => ({ from: r[0], to: r[1], v: r[2], dir: "in" as const })),
+    ];
+  }
+  if ((state.mode === "almen") && !kkData && d.measured.kk) {
+    loadKK().then((g) => ((kkData = g), renderMap(mc)));
+  }
+  mc.render({
+    theme: state.theme,
+    modeId: state.mode,
+    rank: ctx.mode.rank,
+    labels: labelsFor(),
+    hover: hIdx,
+    selected: kIdx,
+    brushed,
+    flows,
+    kk: state.mode === "almen" ? kkData : null,
+    needles: state.mode === "maalt" ? d.measured.aarhusbolig.points : null,
+    needleLabel,
+    reducedMotion,
+  });
+}
+
+const needleLabel = (p: { postnummer: string; maxList: number }) => `${p.postnummer}  ▲ ${num(p.maxList)}`;
+
+function renderAll(mc: MapController): void {
+  renderMasthead();
+  renderModes();
+  renderLegend(showMethod, showSources);
+  renderFooter();
+  renderCard();
+  renderExplorer();
+  renderMap(mc);
+  $("skip-link").textContent = t().skip;
+  wireMasthead(mc);
+}
+
+function wireMasthead(mc: MapController): void {
+  $("btn-method")!.onclick = showMethod;
+  $("btn-sources")!.onclick = showSources;
+  $("btn-tour")!.onclick = () => startTour(mc);
+}
+
+function wire(mc: MapController): void {
+  const tip = $("tooltip");
+  mc.onPick((k, info, kind) => {
+    const kode = k === null ? null : ctx.d.kommuner[k].kode;
+    if (kind === "hover") {
+      if (state.hover !== kode) set({ hover: kode });
+      if (kode && info && !mobile) {
+        const km = ctx.d.kommuner[k!];
+        const [name] = t().modes[state.mode];
+        tip.hidden = false;
+        tip.style.left = `${info.x}px`;
+        tip.style.top = `${info.y}px`;
+        const v = ctx.mode.values[k!];
+        tip.innerHTML = `<b>${esc(km.navn)}</b><span class="v">${esc(name)}: ${esc(fmtModeValue(v))}</span>`;
+      } else tip.hidden = true;
+    } else {
+      set({ k: kode });
+    }
+  });
+  mc.onTip((layer, obj, at) => {
+    if (!layer || !at || mobile) return;
+    const da = lang() === "da";
+    let html = "";
+    if (layer === "kk") {
+      const p = (obj as GeoJSON.Feature).properties ?? {};
+      html = `<b>${esc(p.afd)}</b><span class="v">${esc(p.sel)} · ${num(p.tot)} ${da ? "almene boliger" : "social dwellings"}</span><span class="v">${da ? "Københavns Kommune, Open Data DK" : "City of Copenhagen, Open Data DK"}</span>`;
+    } else {
+      const p = obj as { postnummer: string; by: string; maxList: number; lists: number; signups: number; afdelinger: number };
+      html = `<b>${esc(p.postnummer)} ${esc(p.by)}</b><span class="v">${esc(t().card.measuredLongest(num(p.maxList)))}</span><span class="v">${num(p.lists)} ${da ? "lister" : "lists"} · ${num(p.afdelinger)} ${da ? "afdelinger" : "estates"} · Aarhusbolig</span>`;
+    }
+    tip.hidden = false;
+    tip.style.left = `${at.x}px`;
+    tip.style.top = `${at.y}px`;
+    tip.innerHTML = html;
+  });
+  $("map").addEventListener("mouseleave", () => {
+    tip.hidden = true;
+    if (state.hover) set({ hover: null });
+  });
+  $("map").addEventListener("tiles-error", () => toast(t().tilesError), { once: true });
+  $("inset").addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      set({ k: "0400" });
+    }
+  });
+  addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !(e.target as HTMLElement).closest?.(".panel,.intro")) {
+      if (state.k) set({ k: null });
+      else if (state.explorer) set({ explorer: "" });
+    }
+  });
+
+  subscribe((s: State, ch) => {
+    if (ch.has("lang")) {
+      setLang(s.lang);
+      renderAll(mc);
+      return;
+    }
+    if (ch.has("theme")) {
+      applyTheme();
+      mc.setTheme(s.theme);
+      renderMasthead();
+      wireMasthead(mc);
+    }
+    if (ch.has("w")) recomputeIndex();
+    if (ch.has("w") || ch.has("mode") || ch.has("alt")) recomputeMode();
+    if (ch.has("mode")) {
+      renderModes();
+      announce(t().announce.mode(t().modes[s.mode][0]));
+    }
+    if (ch.has("mode") || ch.has("alt") || ch.has("w") || ch.has("theme")) renderLegend(showMethod, showSources);
+    if (ch.has("k") || ch.has("w") || ch.has("lang")) {
+      renderCard();
+      if (ch.has("k")) mc.setCardOpen(!!s.k, s.k ? ctx.d.byKode.get(s.k)?.i : undefined);
+      if (ch.has("k") && s.k) {
+        const k = ctx.d.byKode.get(s.k)!;
+        announce(t().announce.selected(k.navn, `${t().modelled} ${num(ctx.koetryk[k.i], 2)}`));
+        if (mobile && s.explorer) set({ explorer: "" });
+      }
+    }
+    if (ch.has("explorer")) renderExplorer();
+    else if (ch.has("w") && s.explorer === "weights") rerenderWeightsKeepFocus();
+    else if (ch.has("x") || ch.has("y") || ch.has("cols") || ch.has("sort") || ch.has("brushed") || ch.has("w") || ch.has("theme") || (ch.has("k") && s.explorer === "scatter")) renderBody();
+    else if (ch.has("hover") || ch.has("k")) syncTableHighlight();
+    renderMap(mc);
+  });
+}
+
+boot();
+
+// Exposed for screenshots and debugging only.
+(window as unknown as { __koen: unknown }).__koen = { state, set, ctx, lang };
