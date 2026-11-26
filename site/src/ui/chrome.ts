@@ -48,11 +48,11 @@ export function renderMasthead(): void {
         <datalist id="kommune-list">${ctx.d.kommuner.map((k) => `<option value="${esc(k.navn)}"></option>`).join("")}</datalist>
       </label>
       <button class="btn wide" id="btn-tour" type="button">${esc(c.tour.button)}</button>
-      <button class="btn" id="btn-explorer" type="button" aria-expanded="${state.explorer ? "true" : "false"}" aria-controls="explorer" aria-pressed="${state.explorer ? "true" : "false"}">${icon.table}<span>${esc(c.explorer)}</span></button>
+      <button class="btn" id="btn-explorer" type="button" aria-expanded="${state.explorer ? "true" : "false"}" aria-controls="explorer" aria-pressed="${state.explorer ? "true" : "false"}" aria-label="${esc(c.explorer)}">${icon.table}<span>${esc(c.explorer)}</span></button>
       <button class="btn wide" id="btn-method" type="button">${esc(c.method)}</button>
       <button class="btn wide" id="btn-sources" type="button">${esc(c.sources)}</button>
       <button class="btn icon" id="btn-theme" type="button" aria-label="${esc(c.themeLabel)}" title="${esc(state.theme === "day" ? c.themeNight : c.themeDay)}">${state.theme === "day" ? icon.moon : icon.sun}</button>
-      <button class="btn icon" id="btn-lang" type="button" lang="${c.lang === "da" ? "en" : "da"}" aria-label="${esc(c.langToggleLabel)}">${esc(c.langToggle)}</button>`;
+      <button class="btn icon" id="btn-lang" type="button" lang="${c.lang === "da" ? "en" : "da"}" aria-label="${esc(`${c.langToggle}, ${c.langToggleLabel}`)}">${esc(c.langToggle)}</button>`;
   const search = $("search") as HTMLInputElement;
   const go = () => {
     const q = search.value.trim().toLowerCase();

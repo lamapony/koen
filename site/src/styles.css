@@ -463,7 +463,7 @@ select.sel { height: 32px; border-radius: 6px; border: 1px solid var(--hair); ba
     padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); gap: 6px; background: var(--panel); border-top: 1px solid var(--hair); z-index: 22;
     scroll-snap-type: x proximity; backdrop-filter: blur(8px);
   }
-  .modes h2 { display: none; }
+  .modes h2:not(.sr-only) { display: none; } /* keep the sr-only rail heading so headings stay in order */
   .chip { flex: 0 0 auto; grid-template-columns: auto auto; min-height: 44px; padding: 0 14px; border: 1px solid var(--hair); border-radius: 999px; scroll-snap-align: start; }
   .chip .n { display: none; }
   .chip .k { display: none; }
